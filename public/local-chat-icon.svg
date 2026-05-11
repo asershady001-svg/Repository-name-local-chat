@@ -1,0 +1,6 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#00a884"/>
+  <circle cx="256" cy="238" r="150" fill="#0b141a" opacity="0.95"/>
+  <path d="M175 365 L205 310 C170 285 150 247 150 205 C150 135 212 80 292 80 C372 80 434 135 434 205 C434 275 372 330 292 330 C270 330 249 326 230 319 Z" fill="#ffffff" opacity="0.95"/>
+  <text x="256" y="245" text-anchor="middle" font-family="Arial, Tahoma, sans-serif" font-size="92" font-weight="700" fill="#00a884">LC</text>
+</svg>

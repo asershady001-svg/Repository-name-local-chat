@@ -1,0 +1,64 @@
+﻿LOCAL CHAT - HOSTING OPTIONS
+
+Important:
+Local Chat cannot be hosted as static HTML only because it uses:
+- Node.js
+- Express
+- Socket.io
+- WebSocket
+
+So the hosting must support a running Node.js server.
+
+Option 1: Render
+Good for:
+- Node.js apps
+- Express server
+- WebSocket / Socket.io support
+- Getting a public HTTPS link
+
+Possible issue:
+- Free plans may sleep or be limited depending on current service rules.
+
+Option 2: Railway
+Good for:
+- Node.js apps
+- Fast deployment
+- Environment variables
+- WebSocket support
+
+Possible issue:
+- Free or trial limits may change.
+
+Option 3: VPS Server
+Good for:
+- Full control
+- Better for serious production later
+- Can run Node.js permanently
+
+Possible issue:
+- Needs more setup.
+- Needs security configuration.
+- Usually paid.
+
+Recommended path for this project:
+Start with a simple Node.js hosting service first.
+After Local Chat works online through HTTPS, then continue toward Android / Google Play.
+
+Do not upload to Google Play before:
+- Online HTTPS link works.
+- Login is secure.
+- Private chats are stable.
+- Privacy policy is available online.
+- App is tested on real phones.
+
+Current clean folder for hosting:
+C:\Users\asers\OneDrive\Desktop\chat-app-official-CLEAN-FOR-HOSTING
+
+Local test command:
+npm.cmd start
+
+Hosting start command:
+npm start
+
+Start script:
+node server.js

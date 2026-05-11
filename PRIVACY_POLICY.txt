@@ -1,0 +1,33 @@
+﻿Privacy Policy - Local Chat
+
+Last updated: 2026-05-11
+
+Local Chat is a simple local chat application designed for messaging between devices.
+
+Information we collect:
+- Username entered by the user.
+- Messages sent inside the application.
+- Images, audio messages, or files sent by the user if this feature is used.
+
+How the information is used:
+- To display the username inside conversations.
+- To send and receive chat messages.
+- To store messages for the chat experience.
+
+Current app status:
+- The current version works locally on the same Wi-Fi network.
+- The current version is not yet a public online service.
+- The app is still under development before official publishing.
+
+Data sharing:
+- We do not sell user data.
+- We do not share user data with advertisers.
+- Messages are used only for the chat function inside the app.
+
+Security:
+- This is an early development version.
+- Before public release, login security, password protection, and server security must be improved.
+
+Contact:
+For support or privacy questions, contact:
+shlovey1990@gmail.com

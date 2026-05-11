@@ -1,0 +1,252 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إدارة الدردشات</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Tahoma, sans-serif;
+      background: #0b141a;
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: auto;
+    }
+
+    .card {
+      background: #202c33;
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    }
+
+    h1, h2 {
+      margin-top: 0;
+    }
+
+    p {
+      color: #aebac1;
+      line-height: 1.7;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: #111b21;
+      color: white;
+      font-size: 16px;
+      margin-bottom: 10px;
+      outline: none;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      background: #00a884;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .danger {
+      background: #d93025;
+    }
+
+    .chat {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #111b21;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #00a884;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .name {
+      font-weight: bold;
+      font-size: 17px;
+    }
+
+    .id {
+      color: #8696a0;
+      font-size: 12px;
+      margin-top: 4px;
+      word-break: break-all;
+    }
+
+    .msg {
+      margin-top: 10px;
+      color: #00a884;
+      font-weight: bold;
+    }
+
+    .toplink {
+      display: inline-block;
+      margin-bottom: 15px;
+      color: #00a884;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .links a {
+      color: #00a884;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="links">
+      <a href="/">← الرجوع للمنصة</a>
+      <a href="/users-admin.html">إدارة المستخدمين</a>
+    </div>
+
+    <div class="card">
+      <h1>إدارة الدردشات</h1>
+      <p>من هنا تستطيع إضافة دردشات جديدة أو حذف دردشات موجودة.</p>
+      <input id="adminPassword" type="password" placeholder="كلمة مرور الأدمن" value="admin123" />
+      <button onclick="loadChats()">عرض الدردشات</button>
+      <div class="msg" id="mainMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>إضافة دردشة جديدة</h2>
+      <input id="chatName" placeholder="اسم الدردشة، مثال: دردشة المدرسة" />
+      <input id="chatAvatar" placeholder="رمز الدردشة، مثال: م" maxlength="2" />
+      <button onclick="addChat()">إضافة الدردشة</button>
+      <div class="msg" id="addMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>قائمة الدردشات</h2>
+      <div id="chatsList"></div>
+    </div>
+  </div>
+
+  <script>
+    function admin() {
+      return document.getElementById("adminPassword").value.trim();
+    }
+
+    function show(id, text) {
+      document.getElementById(id).innerText = text;
+      setTimeout(() => {
+        document.getElementById(id).innerText = "";
+      }, 3000);
+    }
+
+    async function loadChats() {
+      const res = await fetch("/api/chats?admin=" + encodeURIComponent(admin()));
+      const data = await res.json();
+
+      if (!data.ok) {
+        show("mainMsg", data.message || "فشل تحميل الدردشات");
+        return;
+      }
+
+      const box = document.getElementById("chatsList");
+      box.innerHTML = "";
+
+      data.chats.forEach(chat => {
+        const div = document.createElement("div");
+        div.className = "chat";
+
+        div.innerHTML = `
+          <div class="avatar">${chat.avatar || "د"}</div>
+          <div class="info">
+            <div class="name">${chat.name}</div>
+            <div class="id">${chat.id}</div>
+          </div>
+          <button class="danger" onclick="deleteChat('${encodeURIComponent(chat.id)}')">حذف</button>
+        `;
+
+        box.appendChild(div);
+      });
+
+      show("mainMsg", "تم تحميل الدردشات");
+    }
+
+    async function addChat() {
+      const name = document.getElementById("chatName").value.trim();
+      const avatar = document.getElementById("chatAvatar").value.trim();
+
+      const res = await fetch("/api/chats", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          admin: admin(),
+          name,
+          avatar
+        })
+      });
+
+      const data = await res.json();
+      show("addMsg", data.message || "تم");
+
+      if (data.ok) {
+        document.getElementById("chatName").value = "";
+        document.getElementById("chatAvatar").value = "";
+        loadChats();
+      }
+    }
+
+    async function deleteChat(encodedId) {
+      if (!confirm("هل تريد حذف هذه الدردشة؟ سيتم حذف رسائلها أيضًا.")) return;
+
+      const res = await fetch("/api/chats/" + encodedId + "?admin=" + encodeURIComponent(admin()), {
+        method: "DELETE"
+      });
+
+      const data = await res.json();
+      show("mainMsg", data.message || "تم");
+
+      if (data.ok) {
+        loadChats();
+      }
+    }
+
+    loadChats();
+  </script>
+</body>
+</html>

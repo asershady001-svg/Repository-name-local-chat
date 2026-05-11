@@ -1,0 +1,9 @@
+﻿node_modules/
+backups/
+chat-app_BACKUP*/
+chat-app-official_BACKUP*/
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.env

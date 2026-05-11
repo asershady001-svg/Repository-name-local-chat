@@ -1,0 +1,56 @@
+﻿LOCAL CHAT - CURRENT STATUS
+
+App name:
+Local Chat
+
+Project folder:
+C:\Users\asers\OneDrive\Desktop\chat-app-official
+
+Package name:
+com.shady.localchat
+
+Current stable status:
+- The app runs on laptop.
+- The app runs on phone on the same Wi-Fi network.
+- Real-time messages work between laptop and phone.
+- Browser title is Local Chat.
+- Main interface title is Local Chat.
+- Top logo is LC.
+- Login screen text was updated.
+- PWA manifest was created.
+- Manifest was linked inside index.html.
+- Theme color was added.
+- SVG icon local-chat-icon.svg was created.
+- Icon was linked inside manifest.json.
+
+Important backups:
+- chat-app_BACKUP_WORKING_PHONE_2026-05-11_11-55-05
+- chat-app-official_BACKUP_LOCAL_CHAT_WORKING_2026-05-11_12-30-24
+- chat-app-official_BACKUP_LOCAL_CHAT_TITLE_OK_2026-05-11_12-39-50
+- chat-app-official_BACKUP_LOCAL_CHAT_LOGO_OK_2026-05-11_12-45-13
+- chat-app-official_BACKUP_LOCAL_CHAT_LOGIN_TEXT_OK_2026-05-11_12-47-44
+- chat-app-official_BACKUP_LOCAL_CHAT_UI_OK_2026-05-11_12-51-35
+- chat-app-official_BACKUP_LOCAL_CHAT_STORE_FILES_OK_2026-05-11_12-53-35
+- chat-app-official_BACKUP_LOCAL_CHAT_PWA_START_OK_2026-05-11_13-08-24
+- chat-app-official_BACKUP_LOCAL_CHAT_PWA_ICON_OK_2026-05-11_13-11-56
+
+Current important files:
+- APP_INFO.txt
+- DEVELOPMENT_PLAN.txt
+- PRIVACY_POLICY.txt
+- STORE_LISTING.txt
+- LOCAL_CHAT_STATUS.txt
+- public/manifest.json
+- public/local-chat-icon.svg
+- public/index.html
+- server.js
+
+Golden rule:
+Do not edit the original chat-app folder.
+All official development must happen only inside chat-app-official.
+Before any new change, create a backup.
+Do not rewrite the whole server.js or index.html unless absolutely necessary.
+Do not add calls before safe user system and private chat system are stable.
+
+Next suggested step:
+Test installation/PWA behavior in browser, then prepare a service worker later if needed.

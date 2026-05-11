@@ -1,0 +1,870 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Local Chat</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#00a884">
+  <script src="/socket.io/socket.io.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Tahoma, sans-serif;
+      background: #0b141a;
+      color: white;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #0b141a;
+    }
+
+    .topbar {
+      height: 68px;
+      background: #202c33;
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      gap: 10px;
+      border-bottom: 1px solid #111b21;
+    }
+
+    .back {
+      display: none;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: white;
+      font-size: 28px;
+      cursor: pointer;
+    }
+
+    .avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #00a884;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: #8696a0;
+      margin-top: 4px;
+    }
+
+    .nameScreen {
+      height: calc(100vh - 68px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 380px;
+      background: #202c33;
+      padding: 24px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 30px;
+    }
+
+    .card p {
+      margin: 0 0 22px;
+      color: #aebac1;
+      font-size: 15px;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px;
+      border-radius: 14px;
+      border: 1px solid #2a3942;
+      background: #111b21;
+      color: white;
+      outline: none;
+      font-size: 17px;
+      text-align: right;
+    }
+
+    .mainBtn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 15px;
+      border: none;
+      border-radius: 14px;
+      background: #00a884;
+      color: white;
+      font-size: 19px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .chatList {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      background: #111b21;
+    }
+
+    .searchBox {
+      padding: 12px;
+      background: #111b21;
+    }
+
+    .searchBox input {
+      background: #202c33;
+      border: none;
+      border-radius: 20px;
+      padding: 13px 16px;
+      font-size: 15px;
+    }
+
+    .chatItem {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 12px;
+      border-bottom: 1px solid #202c33;
+      cursor: pointer;
+      background: #111b21;
+    }
+
+    .chatItem:hover {
+      background: #182229;
+    }
+
+    .chatItem .avatar {
+      width: 50px;
+      height: 50px;
+    }
+
+    .chatText {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chatName {
+      font-size: 17px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .lastMsg {
+      color: #8696a0;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chatTime {
+      color: #8696a0;
+      font-size: 12px;
+    }
+
+    .chatScreen {
+      display: none;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 10px;
+      background: #0b141a;
+    }
+
+    .row {
+      display: flex;
+      margin-bottom: 9px;
+      width: 100%;
+    }
+
+    .row.me {
+      justify-content: flex-end;
+    }
+
+    .row.other {
+      justify-content: flex-start;
+    }
+
+    .bubble {
+      max-width: 78%;
+      padding: 8px 10px;
+      border-radius: 11px;
+      line-height: 1.45;
+      font-size: 16px;
+      word-break: break-word;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    }
+
+    .me .bubble {
+      background: #005c4b;
+      border-top-right-radius: 2px;
+    }
+
+    .other .bubble {
+      background: #202c33;
+      border-top-left-radius: 2px;
+    }
+
+    .sender {
+      color: #00a884;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 3px;
+    }
+
+    .time {
+      color: #aebac1;
+      font-size: 11px;
+      text-align: left;
+      margin-top: 4px;
+    }
+
+    .chatImage {
+      max-width: 230px;
+      width: 100%;
+      border-radius: 10px;
+      display: block;
+      margin-top: 5px;
+      cursor: pointer;
+    }
+
+    .system {
+      text-align: center;
+      color: #8696a0;
+      font-size: 13px;
+      margin: 10px 0;
+    }
+
+    #typing {
+      height: 22px;
+      padding: 2px 16px;
+      font-size: 13px;
+      color: #00a884;
+      background: #0b141a;
+    }
+
+    .sendbar {
+      background: #202c33;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sendbar input[type="text"] {
+      flex: 1;
+      border: none;
+      border-radius: 24px;
+      background: #2a3942;
+      padding: 14px 16px;
+      font-size: 16px;
+    }
+
+    .sendbar button {
+      width: 48px;
+      height: 48px;
+      border: none;
+      border-radius: 50%;
+      background: #00a884;
+      color: white;
+      font-size: 21px;
+      font-weight: bold;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .imageBtn {
+      background: #2a3942 !important;
+      font-size: 22px !important;
+    }
+
+    .voiceBtn {
+      background: #2a3942 !important;
+      font-size: 22px !important;
+    }
+
+    .voiceBtn.recording {
+      background: #d93025 !important;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    .audioMessage {
+      width: 230px;
+      max-width: 100%;
+      margin-top: 6px;
+    }
+
+    #imageInput {
+      display: none;
+    }
+
+    .imageViewer {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+    }
+
+    .imageViewer img {
+      max-width: 100%;
+      max-height: 90vh;
+      border-radius: 12px;
+    }
+
+    .closeViewer {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background: #202c33;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    @media (min-width: 800px) {
+      body {
+        background: #0a1014;
+        display: flex;
+        justify-content: center;
+      }
+
+      .app {
+        max-width: 520px;
+        width: 100%;
+        border-left: 1px solid #2a3942;
+        border-right: 1px solid #2a3942;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="topbar">
+      <button class="back" id="backBtn" onclick="backToList()">‹</button>
+      <div class="avatar" id="topAvatar">LC</div>
+      <div class="info">
+        <div class="title" id="topTitle">Local Chat</div>
+        <div class="subtitle" id="topSubtitle">جاهز للاتصال</div>
+      </div>
+    </div>
+
+    <div class="nameScreen" id="nameScreen">
+      <div class="card">
+        <h2>مرحبًا بك في Local Chat</h2>
+        <p>اكتب اسم المستخدم وكلمة المرور للدخول إلى المحادثات</p>
+                <input id="nameInput" placeholder="اسم المستخدم" />
+        <input id="passwordInput" type="password" placeholder="كلمة المرور" style="margin-top: 10px;" />
+        <button class="mainBtn" onclick="saveName()">متابعة</button>
+      </div>
+    </div>
+
+    <div class="chatList" id="chatList">
+      <div class="searchBox">
+        <input placeholder="بحث في المحادثات..." oninput="filterChats(this.value)" />
+      </div>
+
+      <div id="chatItemsBox"></div>
+    </div>
+
+    <div class="chatScreen" id="chatScreen">
+      <div id="messages"></div>
+      <div id="typing"></div>
+
+      <div class="sendbar">
+        <button class="imageBtn" onclick="document.getElementById('imageInput').click()">📷</button>
+        <input id="imageInput" type="file" accept="image/*" onchange="sendImage(event)" />
+        <button class="voiceBtn" id="voiceBtn" onclick="toggleRecording()">🎤</button>
+        <input id="messageInput" type="text" placeholder="اكتب رسالة..." oninput="sendTyping()" onkeydown="handleEnter(event)" />
+        <button onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="imageViewer" id="imageViewer" onclick="closeImageViewer()">
+    <button class="closeViewer">×</button>
+    <img id="viewerImage" />
+  </div>
+
+  <script>
+    const socket = io();
+
+    let username = "";
+    let currentRoom = "";
+
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+
+    const messagesByRoom = {};
+    let chatsList = [];
+
+    async function loadChats() {
+      const res = await fetch("/api/chats-public");
+      const data = await res.json();
+
+      if (!data.ok) return;
+
+      chatsList = data.chats || [];
+      renderChats(chatsList);
+    }
+
+    function renderChats(list) {
+      const box = document.getElementById("chatItemsBox");
+      box.innerHTML = "";
+
+      list.forEach(chat => {
+        if (!messagesByRoom[chat.id]) {
+          messagesByRoom[chat.id] = [];
+        }
+
+        const div = document.createElement("div");
+        div.className = "chatItem";
+        div.setAttribute("data-name", chat.name);
+
+        div.innerHTML = `
+          <div class="avatar">${chat.avatar || "د"}</div>
+          <div class="chatText">
+            <div class="chatName">${chat.name}</div>
+            <div class="lastMsg" id="last-${chat.id}">اضغط للدخول إلى المحادثة</div>
+          </div>
+          <div class="chatTime">الآن</div>
+        `;
+
+        div.onclick = function() {
+          openRoom(chat.id, chat.name, chat.avatar || "د");
+        };
+
+        box.appendChild(div);
+      });
+    }
+
+    function saveName() {
+      const inputName = document.getElementById("nameInput").value.trim();
+      const inputPassword = document.getElementById("passwordInput").value.trim();
+
+      const canLoginWithoutPin = inputName === "أسر" || inputName === "اسر";
+
+      if (!inputName) {
+        alert("اكتب اسم المستخدم");
+        return;
+      }
+
+      if (!canLoginWithoutPin && !inputPassword) {
+        alert("اكتب كلمة المرور");
+        return;
+      }
+
+      socket.emit("login", {
+        name: inputName,
+        password: inputPassword
+      }, function(response) {
+        if (!response || !response.ok) {
+          alert(response && response.message ? response.message : "فشل تسجيل الدخول");
+          return;
+        }
+
+        username = response.name;
+
+        document.getElementById("nameScreen").style.display = "none";
+        document.getElementById("chatList").style.display = "block";
+        document.getElementById("topTitle").innerText = "المحادثات";
+        document.getElementById("topSubtitle").innerText = username + " متصل";
+        loadChats();
+      });
+    }
+
+    function openRoom(room, roomName, avatar) {
+      currentRoom = room;
+
+      document.getElementById("chatList").style.display = "none";
+      document.getElementById("chatScreen").style.display = "flex";
+      document.getElementById("backBtn").style.display = "block";
+      document.getElementById("topAvatar").innerText = avatar;
+      document.getElementById("topTitle").innerText = roomName;
+      document.getElementById("topSubtitle").innerText = "متصل الآن";
+      document.getElementById("messages").innerHTML = "";
+
+      socket.emit("join room", {
+        room: room,
+        name: username
+      });
+
+      setTimeout(() => {
+        document.getElementById("messageInput").focus();
+      }, 200);
+    }
+
+    function backToList() {
+      currentRoom = "";
+      document.getElementById("chatScreen").style.display = "none";
+      document.getElementById("chatList").style.display = "block";
+      document.getElementById("backBtn").style.display = "none";
+      document.getElementById("topAvatar").innerText = "LC";
+      document.getElementById("topTitle").innerText = "المحادثات";
+      document.getElementById("topSubtitle").innerText = username + " متصل";
+      document.getElementById("typing").innerText = "";
+    }
+
+    function nowTime() {
+      const d = new Date();
+      return d.toLocaleTimeString("ar-QA", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function sendMessage() {
+      const input = document.getElementById("messageInput");
+      const text = input.value.trim();
+
+      if (!text || !currentRoom) return;
+
+      socket.emit("chat message", {
+        type: "text",
+        name: username,
+        text: text,
+        time: nowTime()
+      });
+
+      socket.emit("stop typing");
+      input.value = "";
+    }
+
+    function sendImage(event) {
+      const file = event.target.files[0];
+
+      if (!file || !currentRoom) return;
+
+      if (!file.type.startsWith("image/")) {
+        alert("اختر صورة فقط");
+        return;
+      }
+
+      if (file.size > 2 * 1024 * 1024) {
+        alert("الصورة كبيرة جدا. اختر صورة أقل من 2 ميجا.");
+        event.target.value = "";
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        socket.emit("chat message", {
+          type: "image",
+          name: username,
+          text: "صورة",
+          image: e.target.result,
+          time: nowTime()
+        });
+
+        event.target.value = "";
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+
+    async function toggleRecording() {
+      if (!currentRoom) {
+        alert("ادخل محادثة أولًا");
+        return;
+      }
+
+      if (!isRecording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+          audioChunks = [];
+          mediaRecorder = new MediaRecorder(stream);
+
+          mediaRecorder.ondataavailable = function(event) {
+            if (event.data.size > 0) {
+              audioChunks.push(event.data);
+            }
+          };
+
+          mediaRecorder.onstop = function() {
+            const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+
+            if (audioBlob.size > 3 * 1024 * 1024) {
+              alert("التسجيل طويل جدًا. حاول تسجيل مدة أقصر.");
+              return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+              socket.emit("chat message", {
+                type: "audio",
+                name: username,
+                text: "رسالة صوتية",
+                audio: e.target.result,
+                time: nowTime()
+              });
+            };
+
+            reader.readAsDataURL(audioBlob);
+
+            stream.getTracks().forEach(track => track.stop());
+          };
+
+          mediaRecorder.start();
+          isRecording = true;
+
+          const btn = document.getElementById("voiceBtn");
+          btn.innerText = "■";
+          btn.classList.add("recording");
+
+        } catch (error) {
+          alert("لم يتم السماح باستخدام الميكروفون");
+        }
+      } else {
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+          mediaRecorder.stop();
+        }
+
+        isRecording = false;
+
+        const btn = document.getElementById("voiceBtn");
+        btn.innerText = "🎤";
+        btn.classList.remove("recording");
+      }
+    }
+    function handleEnter(event) {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    }
+
+    function sendTyping() {
+      if (!currentRoom) return;
+
+      socket.emit("typing");
+
+      clearTimeout(window.typingTimer);
+      window.typingTimer = setTimeout(() => {
+        socket.emit("stop typing");
+      }, 900);
+    }
+
+    function renderRoomMessages(room) {
+      const messages = document.getElementById("messages");
+      messages.innerHTML = "";
+
+      if (!messagesByRoom[room]) {
+        messagesByRoom[room] = [];
+      }
+
+      messagesByRoom[room].forEach(addMessageToScreen);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function addMessageToScreen(data) {
+      const messages = document.getElementById("messages");
+      const row = document.createElement("div");
+      const bubble = document.createElement("div");
+
+      const isMe = data.name === username;
+
+      row.className = isMe ? "row me" : "row other";
+      bubble.className = "bubble";
+
+      let content = "";
+
+      if (data.type === "image" && data.image) {
+        content = `
+          ${isMe ? "" : `<div class="sender">${data.name}</div>`}
+          <img class="chatImage" src="${data.image}" onclick="openImageViewer('${data.image}')" />
+          <div class="time">${data.time}</div>
+        `;
+      } else if (data.type === "audio" && data.audio) {
+        content = `
+          ${isMe ? "" : `<div class="sender">${data.name}</div>`}
+          <audio class="audioMessage" controls src="${data.audio}"></audio>
+          <div class="time">${data.time}</div>
+        `;
+      } else {
+        content = `
+          ${isMe ? "" : `<div class="sender">${data.name}</div>`}
+          <div>${data.text}</div>
+          <div class="time">${data.time}</div>
+        `;
+      }
+
+      bubble.innerHTML = content;
+      row.appendChild(bubble);
+      messages.appendChild(row);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function openImageViewer(src) {
+      document.getElementById("viewerImage").src = src;
+      document.getElementById("imageViewer").style.display = "flex";
+    }
+
+    function closeImageViewer() {
+      document.getElementById("imageViewer").style.display = "none";
+      document.getElementById("viewerImage").src = "";
+    }
+
+    function addSystemMessage(text) {
+      const messages = document.getElementById("messages");
+      const div = document.createElement("div");
+      div.className = "system";
+      div.innerText = text;
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function filterChats(value) {
+      const items = document.querySelectorAll(".chatItem");
+      const q = value.trim();
+
+      items.forEach(item => {
+        const name = item.getAttribute("data-name");
+        item.style.display = name.includes(q) ? "flex" : "none";
+      });
+    }
+
+    socket.on("room history", (data) => {
+      if (!messagesByRoom[data.room]) {
+        messagesByRoom[data.room] = [];
+      }
+
+      messagesByRoom[data.room] = data.messages || [];
+
+      const last = document.getElementById("last-" + data.room);
+      if (last && messagesByRoom[data.room].length > 0) {
+        const latest = messagesByRoom[data.room][messagesByRoom[data.room].length - 1];
+        last.innerText = latest.name + ": " + (latest.type === "image" ? "📷 صورة" : latest.type === "audio" ? "🎤 رسالة صوتية" : latest.text);
+      }
+
+      if (data.room === currentRoom) {
+        renderRoomMessages(data.room);
+      }
+    });
+
+    socket.on("chat message", (data) => {
+      if (!messagesByRoom[data.room]) {
+        messagesByRoom[data.room] = [];
+      }
+
+      messagesByRoom[data.room].push(data);
+
+      const last = document.getElementById("last-" + data.room);
+      if (last) {
+        last.innerText = data.name + ": " + (data.type === "image" ? "📷 صورة" : data.type === "audio" ? "🎤 رسالة صوتية" : data.text);
+      }
+
+      if (data.room === currentRoom) {
+        addMessageToScreen(data);
+      }
+    });
+
+    socket.on("system message", (data) => {
+      if (currentRoom) {
+        addSystemMessage(data.text);
+      }
+    });
+
+    socket.on("typing", (name) => {
+      if (currentRoom) {
+        document.getElementById("typing").innerText = name + " يكتب الآن...";
+      }
+    });
+
+    socket.on("stop typing", () => {
+      document.getElementById("typing").innerText = "";
+    });
+  </script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function() {
+        navigator.serviceWorker.register("/service-worker.js")
+          .then(function() {
+            console.log("Local Chat service worker registered");
+          })
+          .catch(function(error) {
+            console.log("Service worker registration failed:", error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
+
+
+<script>
+  socket.on("login required", function(data) {
+    alert(data.message || "يجب تسجيل الدخول أولًا");
+  });
+</script>
+
+<script>
+  socket.on("login required", function(data) {
+    alert(data.message || "يجب تسجيل الدخول أولا");
+  });
+</script>
+
+
+
+
+
+
+
+
+
