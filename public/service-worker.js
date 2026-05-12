@@ -1,8 +1,6 @@
-﻿const CACHE_NAME = "local-chat-cache-v1";
+﻿const CACHE_NAME = "local-chat-cache-v2-no-password";
 
 const FILES_TO_CACHE = [
-  "/",
-  "/index.html",
   "/manifest.json",
   "/icon.svg"
 ];
@@ -32,6 +30,13 @@ self.addEventListener("activate", function (event) {
 });
 
 self.addEventListener("fetch", function (event) {
+  const url = new URL(event.request.url);
+
+  if (url.pathname === "/" || url.pathname === "/index.html") {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   event.respondWith(
     fetch(event.request).catch(function () {
       return caches.match(event.request);
