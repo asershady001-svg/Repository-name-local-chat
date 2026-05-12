@@ -457,6 +457,10 @@ io.on("connection", (socket) => {
 
   socket.on("call-offer", (data) => {
     if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
+    if (!socket.currentRoom.startsWith("private:")) {
+      socket.emit("call-reject", { from: "Local Chat", reason: "المكالمات متاحة في المحادثات الخاصة فقط" });
+      return;
+    }
 
     socket.to(socket.currentRoom).emit("call-offer", {
       room: socket.currentRoom,
@@ -468,6 +472,7 @@ io.on("connection", (socket) => {
 
   socket.on("call-answer", (data) => {
     if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
+    if (!socket.currentRoom.startsWith("private:")) return;
 
     socket.to(socket.currentRoom).emit("call-answer", {
       room: socket.currentRoom,
@@ -478,6 +483,7 @@ io.on("connection", (socket) => {
 
   socket.on("call-ice-candidate", (data) => {
     if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
+    if (!socket.currentRoom.startsWith("private:")) return;
 
     socket.to(socket.currentRoom).emit("call-ice-candidate", {
       room: socket.currentRoom,
@@ -488,6 +494,7 @@ io.on("connection", (socket) => {
 
   socket.on("call-reject", (data) => {
     if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
+    if (!socket.currentRoom.startsWith("private:")) return;
 
     socket.to(socket.currentRoom).emit("call-reject", {
       room: socket.currentRoom,
@@ -497,6 +504,7 @@ io.on("connection", (socket) => {
 
   socket.on("call-end", (data) => {
     if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
+    if (!socket.currentRoom.startsWith("private:")) return;
 
     socket.to(socket.currentRoom).emit("call-end", {
       room: socket.currentRoom,
@@ -512,6 +520,7 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 3000; server.listen(PORT, "0.0.0.0", () => {
   console.log("Local Chat is running on http://localhost:3000");
 });
+
 
 
 

@@ -1272,9 +1272,16 @@
 
     const callRtcConfig = {
       iceServers: [
-        { urls: "stun:stun.l.google.com:19302" }
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun2.l.google.com:19302" },
+        { urls: "stun:global.stun.twilio.com:3478" }
       ]
     };
+
+    function isPrivateRoom() {
+      return currentRoom && currentRoom.indexOf("private:") === 0;
+    }
 
     function setCallStatus(text) {
       const el = document.getElementById("callStatus");
@@ -1976,6 +1983,7 @@
     alert(data.message || "يجب تسجيل الدخول أولا");
   });
 </script>
+
 
 
 

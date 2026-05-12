@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = "local-chat-cache-v2-no-password";
+﻿const CACHE_NAME = "local-chat-cache-v3-private-calls-only";
 
 const FILES_TO_CACHE = [
   "/manifest.json",
@@ -43,3 +43,4 @@ self.addEventListener("fetch", function (event) {
     })
   );
 });
+
