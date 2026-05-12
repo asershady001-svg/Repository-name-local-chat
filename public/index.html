@@ -651,7 +651,26 @@
     .worldLanguageBox.open {
       display: flex !important;
     }
-  </style>
+  
+    .refreshPageBtn {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: #2a3942;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .refreshPageBtn:hover {
+      background: #00a884;
+    }
+</style>
 <style id="local-chat-splash-style">
   #localChatSplash {
     position: fixed;
@@ -940,6 +959,7 @@
   <div class="app">
     <div class="topbar">
       <button class="back" id="backBtn" onclick="backToList()">‹</button>
+      <button class="refreshPageBtn" id="refreshPageBtn" onclick="refreshApp()" title="Refresh">&#x1F504;</button>
       <div class="avatar" id="topAvatar">LC</div>
       <div class="info">
         <div class="title" id="topTitle">Local Chat</div>
@@ -1069,6 +1089,10 @@
 
         box.appendChild(div);
       });
+    }
+
+    function refreshApp() {
+      window.location.reload();
     }
 
     function saveName() {
