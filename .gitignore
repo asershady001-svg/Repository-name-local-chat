@@ -15,3 +15,5 @@ public/users-admin_before_*.html
 users_before_github_clean_*.json
 chats_before_github_clean_*.json
 messages_before_github_clean_*.json
+
+archive_cleanup/

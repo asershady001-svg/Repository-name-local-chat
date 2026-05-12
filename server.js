@@ -289,6 +289,39 @@ function broadcastOnlineUsers() {
   io.emit("online users", getOnlineUsersList());
 }
 
+
+app.get("/ice-config", (req, res) => {
+  const iceServers = [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "stun:stun3.l.google.com:19302" },
+    { urls: "stun:stun4.l.google.com:19302" }
+  ];
+
+  const turnUrls = String(process.env.TURN_URLS || "")
+    .split(",")
+    .map(url => url.trim())
+    .filter(Boolean);
+
+  const turnUsername = String(process.env.TURN_USERNAME || "").trim();
+  const turnCredential = String(process.env.TURN_CREDENTIAL || "").trim();
+
+  if (turnUrls.length > 0 && turnUsername && turnCredential) {
+    iceServers.push({
+      urls: turnUrls,
+      username: turnUsername,
+      credential: turnCredential
+    });
+  }
+
+  res.json({
+    ok: true,
+    turnEnabled: turnUrls.length > 0 && !!turnUsername && !!turnCredential,
+    iceServers
+  });
+});
+
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 

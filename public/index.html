@@ -1270,14 +1270,29 @@
     let localCallStream = null;
     let isInCall = false;
 
-    const callRtcConfig = {
+    let callRtcConfig = {
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
         { urls: "stun:stun1.l.google.com:19302" },
         { urls: "stun:stun2.l.google.com:19302" },
-        { urls: "stun:global.stun.twilio.com:3478" }
+        { urls: "stun:stun3.l.google.com:19302" },
+        { urls: "stun:stun4.l.google.com:19302" }
       ]
     };
+
+    async function loadIceConfig() {
+      try {
+        const response = await fetch("/ice-config", { cache: "no-store" });
+        const data = await response.json();
+
+        if (data && data.ok && Array.isArray(data.iceServers) && data.iceServers.length > 0) {
+          callRtcConfig = { iceServers: data.iceServers };
+          console.log("ICE config loaded. TURN enabled:", !!data.turnEnabled);
+        }
+      } catch (error) {
+        console.log("Using fallback STUN config:", error);
+      }
+    }
 
     function isPrivateRoom() {
       return currentRoom && currentRoom.indexOf("private:") === 0;
@@ -1373,6 +1388,7 @@
 
       try {
         setCallStatus("جاري بدء المكالمة...");
+        await loadIceConfig();
         const stream = await prepareLocalAudio();
         const pc = createCallPeerConnection();
 
@@ -1410,6 +1426,7 @@
 
       try {
         setCallStatus("Starting video call...");
+        await loadIceConfig();
         const stream = await prepareLocalVideo();
         const pc = createCallPeerConnection();
 
@@ -1437,6 +1454,7 @@
     async function acceptVideoCall(data) {
       try {
         setCallStatus("Video call accepted...");
+        await loadIceConfig();
         const stream = await prepareLocalVideo();
         const pc = createCallPeerConnection();
 
@@ -1464,6 +1482,7 @@
     async function acceptVoiceCall(data) {
       try {
         setCallStatus("تم قبول المكالمة...");
+        await loadIceConfig();
         const stream = await prepareLocalAudio();
         const pc = createCallPeerConnection();
 
@@ -1489,6 +1508,7 @@
     }
 
     function endCall(emitEvent = true) {
+      stopIncomingRingtone();
       if (callPeerConnection) {
         callPeerConnection.close();
         callPeerConnection = null;
@@ -1522,6 +1542,58 @@
 
     let pendingIncomingCallData = null;
 
+    let incomingRingInterval = null;
+    let incomingRingAudioContext = null;
+
+    function startIncomingRingtone() {
+      stopIncomingRingtone();
+
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+
+        incomingRingAudioContext = new AudioContextClass();
+
+        const ringOnce = function() {
+          if (!incomingRingAudioContext) return;
+
+          const osc = incomingRingAudioContext.createOscillator();
+          const gain = incomingRingAudioContext.createGain();
+
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(880, incomingRingAudioContext.currentTime);
+
+          gain.gain.setValueAtTime(0.0001, incomingRingAudioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.22, incomingRingAudioContext.currentTime + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.0001, incomingRingAudioContext.currentTime + 0.55);
+
+          osc.connect(gain);
+          gain.connect(incomingRingAudioContext.destination);
+
+          osc.start();
+          osc.stop(incomingRingAudioContext.currentTime + 0.6);
+        };
+
+        ringOnce();
+        incomingRingInterval = setInterval(ringOnce, 1200);
+      } catch (error) {
+        console.log("Ringtone blocked or failed:", error);
+      }
+    }
+
+    function stopIncomingRingtone() {
+      if (incomingRingInterval) {
+        clearInterval(incomingRingInterval);
+        incomingRingInterval = null;
+      }
+
+      if (incomingRingAudioContext) {
+        incomingRingAudioContext.close().catch(() => {});
+        incomingRingAudioContext = null;
+      }
+    }
+
+
     function showIncomingCallPopup(data) {
       pendingIncomingCallData = data;
       const overlay = document.getElementById("incomingCallOverlay");
@@ -1537,10 +1609,12 @@
       if (text) text.textContent = "مكالمة واردة من: " + fromName;
 
       if (overlay) overlay.style.display = "flex";
+      startIncomingRingtone();
       setCallStatus("مكالمة واردة من " + fromName);
     }
 
     function hideIncomingCallPopup() {
+      stopIncomingRingtone();
       const overlay = document.getElementById("incomingCallOverlay");
       if (overlay) overlay.style.display = "none";
     }
@@ -1601,11 +1675,15 @@
     });
 
     socket.on("call-reject", function(data) {
+      pendingIncomingCallData = null;
+      hideIncomingCallPopup();
       setCallStatus((data && data.from ? data.from : "الطرف الآخر") + " رفض المكالمة");
       endCall(false);
     });
 
     socket.on("call-end", function(data) {
+      pendingIncomingCallData = null;
+      hideIncomingCallPopup();
       setCallStatus((data && data.from ? data.from : "الطرف الآخر") + " أنهى المكالمة");
       endCall(false);
     });
