@@ -141,10 +141,23 @@ app.get("/api/users", (req, res) => {
     return res.status(403).json({ ok: false, message: "غير مصرح" });
   }
 
-  const users = Object.keys(allowedUsers).map(name => ({
-    name,
-    password: allowedUsers[name]
-  }));
+  const users = Object.keys(allowedUsers).map(name => {
+    const value = allowedUsers[name];
+
+    if (value && typeof value === "object") {
+      return {
+        name,
+        phone: value.phone || "",
+        password: value.password || ""
+      };
+    }
+
+    return {
+      name,
+      phone: "",
+      password: value || ""
+    };
+  });
 
   res.json({ ok: true, users });
 });
@@ -155,17 +168,25 @@ app.post("/api/users", (req, res) => {
   }
 
   const name = String(req.body.name || "").trim();
+  const phone = String(req.body.phone || "").trim();
   const password = String(req.body.password || "").trim();
 
   if (!name) {
     return res.json({ ok: false, message: "اكتب اسم المستخدم" });
   }
 
+  if (!phone) {
+    return res.json({ ok: false, message: "اكتب رقم الهاتف" });
+  }
+
   if (name !== "أسر" && name !== "اسر" && password.length < 3) {
     return res.json({ ok: false, message: "كلمة المرور قصيرة جدًا" });
   }
 
-  allowedUsers[name] = password;
+  allowedUsers[name] = {
+    phone,
+    password
+  };
   saveUsers();
 
   res.json({ ok: true, message: "تم حفظ المستخدم" });
@@ -260,11 +281,17 @@ io.on("connection", (socket) => {
 
   socket.on("login", (data, callback) => {
     const name = String(data.name || "").trim();
+    const phone = String(data.phone || "").trim();
     const password = String(data.password || "").trim();
     const canLoginWithoutPin = name === "أسر" || name === "اسر";
 
     if (!name) {
       callback({ ok: false, message: "اكتب اسم المستخدم" });
+      return;
+    }
+
+    if (!phone) {
+      callback({ ok: false, message: "اكتب رقم الهاتف" });
       return;
     }
 
@@ -278,27 +305,61 @@ io.on("connection", (socket) => {
       return;
     }
 
-    if (allowedUsers[name]) {
-      if (!canLoginWithoutPin && allowedUsers[name] !== password) {
+    const userExists = Object.prototype.hasOwnProperty.call(allowedUsers, name);
+    const savedValue = allowedUsers[name];
+
+    let savedPassword = "";
+    let savedPhone = "";
+
+    if (savedValue && typeof savedValue === "object") {
+      savedPassword = savedValue.password || "";
+      savedPhone = savedValue.phone || "";
+    } else {
+      savedPassword = savedValue || "";
+    }
+
+    if (userExists) {
+      if (!canLoginWithoutPin && savedPassword !== password) {
         callback({ ok: false, message: "كلمة المرور غير صحيحة" });
         console.log("Login failed wrong password:", name);
         return;
       }
 
+      if (savedPhone && savedPhone !== phone) {
+        callback({ ok: false, message: "رقم الهاتف غير مطابق لهذا المستخدم" });
+        console.log("Login failed wrong phone:", name);
+        return;
+      }
+
+      const phoneAlreadyRegistered = Object.entries(allowedUsers).some(([existingName, existingValue]) => { if (existingName === name) return false; if (existingValue && typeof existingValue === "object") { return String(existingValue.phone || "").trim() === phone; } return false; });
+
+    if (phoneAlreadyRegistered) { callback({ ok: false, message: "This phone number is already registered. Please login with the old account." }); console.log("Register rejected duplicate phone:", name, phone); return; }
+
+    allowedUsers[name] = {
+        phone: savedPhone || phone,
+        password: canLoginWithoutPin ? "" : savedPassword
+      };
+      saveUsers();
+
       socket.isLoggedIn = true;
       socket.username = name;
-      callback({ ok: true, name, newUser: false });
-      console.log("Login success:", name);
+      socket.phone = phone;
+      callback({ ok: true, name, phone, newUser: false });
+      console.log("Login success:", name, phone);
       return;
     }
 
-    allowedUsers[name] = canLoginWithoutPin ? "" : password;
+    allowedUsers[name] = {
+      phone,
+      password: canLoginWithoutPin ? "" : password
+    };
     saveUsers();
 
     socket.isLoggedIn = true;
     socket.username = name;
-    callback({ ok: true, name, newUser: true });
-    console.log("New user registered:", name);
+    socket.phone = phone;
+    callback({ ok: true, name, phone, newUser: true });
+    console.log("New user registered:", name, phone);
   });
 
   socket.on("join room", (data) => {
@@ -360,6 +421,22 @@ io.on("connection", (socket) => {
     io.to(socket.currentRoom).emit("chat message", message);
   });
 
+  socket.on("clear room messages", (data) => {
+    if (!socket.isLoggedIn || !socket.currentRoom) return;
+
+    const roomToClear = socket.currentRoom;
+
+    if (!messageHistory[roomToClear]) {
+      messageHistory[roomToClear] = [];
+    }
+
+    messageHistory[roomToClear] = [];
+    saveMessages();
+
+    io.to(roomToClear).emit("messages cleared", {
+      room: roomToClear
+    });
+  });
   socket.on("typing", () => {
     if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
     socket.to(socket.currentRoom).emit("typing", socket.username);
@@ -370,12 +447,65 @@ io.on("connection", (socket) => {
     socket.to(socket.currentRoom).emit("stop typing");
   });
 
+
+  socket.on("call-offer", (data) => {
+    if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
+
+    socket.to(socket.currentRoom).emit("call-offer", {
+      room: socket.currentRoom,
+      from: socket.username,
+      type: data.type || "voice",
+      offer: data.offer
+    });
+  });
+
+  socket.on("call-answer", (data) => {
+    if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
+
+    socket.to(socket.currentRoom).emit("call-answer", {
+      room: socket.currentRoom,
+      from: socket.username,
+      answer: data.answer
+    });
+  });
+
+  socket.on("call-ice-candidate", (data) => {
+    if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
+
+    socket.to(socket.currentRoom).emit("call-ice-candidate", {
+      room: socket.currentRoom,
+      from: socket.username,
+      candidate: data.candidate
+    });
+  });
+
+  socket.on("call-reject", (data) => {
+    if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
+
+    socket.to(socket.currentRoom).emit("call-reject", {
+      room: socket.currentRoom,
+      from: socket.username
+    });
+  });
+
+  socket.on("call-end", (data) => {
+    if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
+
+    socket.to(socket.currentRoom).emit("call-end", {
+      room: socket.currentRoom,
+      from: socket.username
+    });
+  });
+
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
 });
 
-server.listen(3000, "0.0.0.0", () => {
+const PORT = process.env.PORT || 3000; server.listen(PORT, "0.0.0.0", () => {
   console.log("Local Chat is running on http://localhost:3000");
 });
+
+
+
 

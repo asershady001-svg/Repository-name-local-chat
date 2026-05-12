@@ -6,6 +6,64 @@
   <title>Local Chat</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#00a884">
+    <div class="incomingCallOverlay" id="incomingCallOverlay">
+    <div class="incomingCallCard">
+      <div class="incomingCallIcon" id="incomingCallIcon">📞</div>
+      <div class="incomingCallTitle" id="incomingCallTitle">مكالمة واردة</div>
+      <div class="incomingCallText" id="incomingCallText">لديك مكالمة واردة</div>
+      <div class="incomingCallActions">
+        <button class="acceptIncomingCallBtn" onclick="acceptIncomingCallPopup()">قبول</button>
+        <button class="rejectIncomingCallBtn" onclick="rejectIncomingCallPopup()">رفض</button>
+      </div>
+    </div>
+  </div>
+    <div class="languageToggleBox">
+    <button class="languageToggleBtn" id="languageToggleBtn" onclick="toggleLanguageMenu()">🌐 Language</button>
+  </div>
+    <div class="worldLanguageBox" id="worldLanguageBox">
+    <select id="worldLanguageSelect" title="Choose language">
+      <option value="">🌐 اختر اللغة / Language</option>
+      <option value="ar">العربية</option>
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+      <option value="es">Español</option>
+      <option value="de">Deutsch</option>
+      <option value="it">Italiano</option>
+      <option value="pt">Português</option>
+      <option value="ru">Русский</option>
+      <option value="tr">Türkçe</option>
+      <option value="fa">فارسی</option>
+      <option value="ur">اردو</option>
+      <option value="hi">हिन्दी</option>
+      <option value="bn">বাংলা</option>
+      <option value="zh-CN">中文 简体</option>
+      <option value="zh-TW">中文 繁體</option>
+      <option value="ja">日本語</option>
+      <option value="ko">한국어</option>
+      <option value="id">Bahasa Indonesia</option>
+      <option value="ms">Bahasa Melayu</option>
+      <option value="th">ไทย</option>
+      <option value="vi">Tiếng Việt</option>
+      <option value="nl">Nederlands</option>
+      <option value="pl">Polski</option>
+      <option value="uk">Українська</option>
+      <option value="el">Ελληνικά</option>
+      <option value="he">עברית</option>
+      <option value="sw">Kiswahili</option>
+      <option value="am">አማርኛ</option>
+      <option value="so">Soomaali</option>
+      <option value="ha">Hausa</option>
+      <option value="yo">Yorùbá</option>
+      <option value="af">Afrikaans</option>
+      <option value="ro">Română</option>
+      <option value="cs">Čeština</option>
+      <option value="sv">Svenska</option>
+      <option value="no">Norsk</option>
+      <option value="da">Dansk</option>
+      <option value="fi">Suomi</option>
+    </select>
+    <button onclick="translateCurrentPage()">ترجمة</button>
+  </div>
   <script src="/socket.io/socket.io.js"></script>
 
   <style>
@@ -195,11 +253,74 @@
       font-size: 12px;
     }
 
+    .chatMeta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      min-width: 42px;
+    }
+
+    .unreadBadge {
+      min-width: 22px;
+      height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      background: #00a884;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chatItem.unread {
+      background: #14242b;
+    }
+
+    .chatItem.unread .chatName {
+      color: #ffffff;
+    }
+
+    .chatItem.unread .lastMsg {
+      color: #d9fdd3;
+      font-weight: bold;
+    }
+
     .chatScreen {
       display: none;
       flex: 1;
       min-height: 0;
       flex-direction: column;
+    }
+
+    .callPanel {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: #111b21;
+      border-bottom: 1px solid #2a3942;
+    }
+
+    .callPanel button {
+      border: none;
+      border-radius: 18px;
+      padding: 8px 12px;
+      background: #00a884;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .callPanel .endCallBtn {
+      background: #d93025;
+    }
+
+    #callStatus {
+      color: #d9fdd3;
+      font-size: 13px;
     }
 
     #messages {
@@ -387,6 +508,427 @@
         border-right: 1px solid #2a3942;
       }
     }
+    .deleteBtn {
+    background: #2a3942;
+    color: #ff6b6b;
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-size: 22px;
+    cursor: pointer;
+  }
+
+  .deleteBtn:hover {
+    background: #3b4a54;
+  }
+  
+    .videoCallBox {
+      display: none;
+      gap: 8px;
+      padding: 8px;
+      background: #0b141a;
+      border-bottom: 1px solid #2a3942;
+    }
+
+    .videoCallBox video {
+      width: 48%;
+      max-height: 180px;
+      background: #000;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+      .incomingCallOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      padding: 20px;
+    }
+
+    .incomingCallCard {
+      width: min(360px, 100%);
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.25);
+      text-align: center;
+      direction: rtl;
+      font-family: Arial, sans-serif;
+    }
+
+    .incomingCallIcon {
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      background: #e8f5e9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      font-size: 34px;
+    }
+
+    .incomingCallTitle {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #111827;
+    }
+
+    .incomingCallText {
+      font-size: 15px;
+      color: #4b5563;
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+
+    .incomingCallActions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .incomingCallActions button {
+      border: 0;
+      border-radius: 14px;
+      padding: 11px 18px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      min-width: 110px;
+    }
+
+    .acceptIncomingCallBtn {
+      background: #16a34a;
+      color: white;
+    }
+
+    .rejectIncomingCallBtn {
+      background: #dc2626;
+      color: white;
+    }
+      .languageToggleBox {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 99998;
+    }
+
+    .languageToggleBtn {
+      border: 0;
+      border-radius: 999px;
+      background: #111827;
+      color: #ffffff;
+      padding: 9px 15px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+    }
+
+    .languageToggleBtn:hover {
+      background: #2563eb;
+    }
+      .worldLanguageBox {
+      position: fixed;
+      top: 58px;
+      left: 14px;
+      z-index: 99998;
+      background: rgba(255,255,255,0.96);
+      border-radius: 14px;
+      padding: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.16);
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .worldLanguageBox select {
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 8px;
+      font-size: 13px;
+      max-width: 190px;
+      background: white;
+    }
+
+    .worldLanguageBox button {
+      border: 0;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .worldLanguageBox button:hover {
+      background: #1d4ed8;
+    }
+      /* Clean unified language menu */
+    .languageToggleBox {
+      position: fixed !important;
+      top: 14px !important;
+      left: 14px !important;
+      z-index: 100000 !important;
+    }
+
+    .languageToggleBtn {
+      border: 0 !important;
+      border-radius: 999px !important;
+      background: #111827 !important;
+      color: #ffffff !important;
+      padding: 10px 16px !important;
+      font-size: 14px !important;
+      font-weight: bold !important;
+      cursor: pointer !important;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.18) !important;
+    }
+
+    .worldLanguageBox {
+      position: fixed !important;
+      top: 58px !important;
+      left: 14px !important;
+      z-index: 99999 !important;
+      background: rgba(255,255,255,0.98) !important;
+      border-radius: 16px !important;
+      padding: 10px !important;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.18) !important;
+      display: none;
+      gap: 7px !important;
+      align-items: center !important;
+      max-width: calc(100vw - 28px) !important;
+    }
+
+    .worldLanguageBox.open {
+      display: flex !important;
+    }
+  </style>
+<style id="local-chat-splash-style">
+  #localChatSplash {
+    position: fixed;
+    inset: 0;
+    background: #0f172a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+    font-family: Arial, sans-serif;
+  }
+  #localChatSplash .splash-box {
+    text-align: center;
+    color: white;
+  }
+  #localChatSplash .splash-logo {
+    width: 110px;
+    height: 110px;
+    border-radius: 32px;
+    background: #22c55e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    font-weight: 800;
+    margin: 0 auto 18px;
+  }
+  #localChatSplash .splash-title {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+  #localChatSplash .splash-subtitle {
+    font-size: 14px;
+    opacity: 0.75;
+  }
+  .deleteBtn {
+    background: #2a3942;
+    color: #ff6b6b;
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-size: 22px;
+    cursor: pointer;
+  }
+
+  .deleteBtn:hover {
+    background: #3b4a54;
+  }
+      .incomingCallOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      padding: 20px;
+    }
+
+    .incomingCallCard {
+      width: min(360px, 100%);
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.25);
+      text-align: center;
+      direction: rtl;
+      font-family: Arial, sans-serif;
+    }
+
+    .incomingCallIcon {
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      background: #e8f5e9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      font-size: 34px;
+    }
+
+    .incomingCallTitle {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #111827;
+    }
+
+    .incomingCallText {
+      font-size: 15px;
+      color: #4b5563;
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+
+    .incomingCallActions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .incomingCallActions button {
+      border: 0;
+      border-radius: 14px;
+      padding: 11px 18px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      min-width: 110px;
+    }
+
+    .acceptIncomingCallBtn {
+      background: #16a34a;
+      color: white;
+    }
+
+    .rejectIncomingCallBtn {
+      background: #dc2626;
+      color: white;
+    }
+      .languageToggleBox {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 99998;
+    }
+
+    .languageToggleBtn {
+      border: 0;
+      border-radius: 999px;
+      background: #111827;
+      color: #ffffff;
+      padding: 9px 15px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+    }
+
+    .languageToggleBtn:hover {
+      background: #2563eb;
+    }
+      .worldLanguageBox {
+      position: fixed;
+      top: 58px;
+      left: 14px;
+      z-index: 99998;
+      background: rgba(255,255,255,0.96);
+      border-radius: 14px;
+      padding: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.16);
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .worldLanguageBox select {
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 8px;
+      font-size: 13px;
+      max-width: 190px;
+      background: white;
+    }
+
+    .worldLanguageBox button {
+      border: 0;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .worldLanguageBox button:hover {
+      background: #1d4ed8;
+    }
+      /* Clean unified language menu */
+    .languageToggleBox {
+      position: fixed !important;
+      top: 14px !important;
+      left: 14px !important;
+      z-index: 100000 !important;
+    }
+
+    .languageToggleBtn {
+      border: 0 !important;
+      border-radius: 999px !important;
+      background: #111827 !important;
+      color: #ffffff !important;
+      padding: 10px 16px !important;
+      font-size: 14px !important;
+      font-weight: bold !important;
+      cursor: pointer !important;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.18) !important;
+    }
+
+    .worldLanguageBox {
+      position: fixed !important;
+      top: 58px !important;
+      left: 14px !important;
+      z-index: 99999 !important;
+      background: rgba(255,255,255,0.98) !important;
+      border-radius: 16px !important;
+      padding: 10px !important;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.18) !important;
+      display: none;
+      gap: 7px !important;
+      align-items: center !important;
+      max-width: calc(100vw - 28px) !important;
+    }
+
+    .worldLanguageBox.open {
+      display: flex !important;
+    }
   </style>
 </head>
 
@@ -404,8 +946,9 @@
     <div class="nameScreen" id="nameScreen">
       <div class="card">
         <h2>مرحبًا بك في Local Chat</h2>
-        <p>اكتب اسم المستخدم وكلمة المرور للدخول إلى المحادثات</p>
+        <p>اكتب اسم المستخدم ورقم الهاتف وكلمة المرور للدخول إلى المحادثات</p>
                 <input id="nameInput" placeholder="اسم المستخدم" />
+        <input id="phoneInput" placeholder="رقم الهاتف" inputmode="tel" style="margin-top: 10px;" />
         <input id="passwordInput" type="password" placeholder="كلمة المرور" style="margin-top: 10px;" />
         <button class="mainBtn" onclick="saveName()">متابعة</button>
       </div>
@@ -420,12 +963,24 @@
     </div>
 
     <div class="chatScreen" id="chatScreen">
+      <div class="callPanel" id="callPanel">
+        <button onclick="startVoiceCall()">📞 مكالمة صوتية</button>
+        <button onclick="startVideoCall()">📹 Video Call</button>
+        <button class="endCallBtn" onclick="endCall()">إنهاء</button>
+        <span id="callStatus">جاهز للمكالمة</span>
+        <audio id="remoteCallAudio" autoplay></audio>
+      </div>
+      <div class="videoCallBox" id="videoCallBox">
+        <video id="localCallVideo" autoplay muted playsinline></video>
+        <video id="remoteCallVideo" autoplay playsinline></video>
+      </div>
       <div id="messages"></div>
       <div id="typing"></div>
 
       <div class="sendbar">
         <button class="imageBtn" onclick="document.getElementById('imageInput').click()">📷</button>
         <input id="imageInput" type="file" accept="image/*" onchange="sendImage(event)" />
+        <button class="deleteBtn" title="مسح رسائل هذه المحادثة" onclick="clearCurrentRoomMessages()">🗑️</button>
         <button class="voiceBtn" id="voiceBtn" onclick="toggleRecording()">🎤</button>
         <input id="messageInput" type="text" placeholder="اكتب رسالة..." oninput="sendTyping()" onkeydown="handleEnter(event)" />
         <button onclick="sendMessage()">➤</button>
@@ -449,6 +1004,7 @@
     let isRecording = false;
 
     const messagesByRoom = {};
+    const unreadCounts = {};
     let chatsList = [];
 
     async function loadChats() {
@@ -471,16 +1027,27 @@
         }
 
         const div = document.createElement("div");
-        div.className = "chatItem";
+        const unread = unreadCounts[chat.id] || 0;
+        const latest = messagesByRoom[chat.id] && messagesByRoom[chat.id].length
+          ? messagesByRoom[chat.id][messagesByRoom[chat.id].length - 1]
+          : null;
+        const latestText = latest
+          ? latest.name + ": " + (latest.type === "image" ? "📷 صورة" : latest.type === "audio" ? "🎤 رسالة صوتية" : latest.text)
+          : "اضغط للدخول إلى المحادثة";
+
+        div.className = "chatItem" + (unread > 0 ? " unread" : "");
         div.setAttribute("data-name", chat.name);
 
         div.innerHTML = `
           <div class="avatar">${chat.avatar || "د"}</div>
           <div class="chatText">
             <div class="chatName">${chat.name}</div>
-            <div class="lastMsg" id="last-${chat.id}">اضغط للدخول إلى المحادثة</div>
+            <div class="lastMsg" id="last-${chat.id}">${latestText}</div>
           </div>
-          <div class="chatTime">الآن</div>
+          <div class="chatMeta">
+            <div class="chatTime">الآن</div>
+            <div class="unreadBadge" id="unread-${chat.id}" style="${unread > 0 ? "" : "display:none"}">${unread}</div>
+          </div>
         `;
 
         div.onclick = function() {
@@ -493,12 +1060,18 @@
 
     function saveName() {
       const inputName = document.getElementById("nameInput").value.trim();
+      const inputPhone = document.getElementById("phoneInput").value.trim();
       const inputPassword = document.getElementById("passwordInput").value.trim();
 
       const canLoginWithoutPin = inputName === "أسر" || inputName === "اسر";
 
       if (!inputName) {
         alert("اكتب اسم المستخدم");
+        return;
+      }
+
+      if (!inputPhone) {
+        alert("اكتب رقم الهاتف");
         return;
       }
 
@@ -509,6 +1082,7 @@
 
       socket.emit("login", {
         name: inputName,
+        phone: inputPhone,
         password: inputPassword
       }, function(response) {
         if (!response || !response.ok) {
@@ -528,9 +1102,12 @@
 
     function openRoom(room, roomName, avatar) {
       currentRoom = room;
+      unreadCounts[room] = 0;
+      renderChats(chatsList);
 
       document.getElementById("chatList").style.display = "none";
       document.getElementById("chatScreen").style.display = "flex";
+      document.getElementById("callPanel").style.display = "flex";
       document.getElementById("backBtn").style.display = "block";
       document.getElementById("topAvatar").innerText = avatar;
       document.getElementById("topTitle").innerText = roomName;
@@ -550,6 +1127,7 @@
     function backToList() {
       currentRoom = "";
       document.getElementById("chatScreen").style.display = "none";
+      document.getElementById("callPanel").style.display = "none";
       document.getElementById("chatList").style.display = "block";
       document.getElementById("backBtn").style.display = "none";
       document.getElementById("topAvatar").innerText = "LC";
@@ -683,6 +1261,373 @@
         btn.classList.remove("recording");
       }
     }
+
+    let callPeerConnection = null;
+    let localCallStream = null;
+    let isInCall = false;
+
+    const callRtcConfig = {
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" }
+      ]
+    };
+
+    function setCallStatus(text) {
+      const el = document.getElementById("callStatus");
+      if (el) el.innerText = text;
+    }
+
+    async function prepareLocalAudio() {
+      if (localCallStream) return localCallStream;
+
+      localCallStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false
+      });
+
+      return localCallStream;
+    }
+
+    async function prepareLocalVideo() {
+      if (localCallStream) return localCallStream;
+
+      localCallStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true
+      });
+
+      const localVideo = document.getElementById("localCallVideo");
+      if (localVideo) {
+        localVideo.srcObject = localCallStream;
+        localVideo.play().catch(() => {});
+      }
+
+      const videoBox = document.getElementById("videoCallBox");
+      if (videoBox) {
+        videoBox.style.display = "flex";
+      }
+
+      return localCallStream;
+    }
+
+    function createCallPeerConnection() {
+      callPeerConnection = new RTCPeerConnection(callRtcConfig);
+
+      callPeerConnection.onicecandidate = function(event) {
+        if (event.candidate) {
+          socket.emit("call-ice-candidate", {
+            candidate: event.candidate
+          });
+        }
+      };
+
+      callPeerConnection.ontrack = function(event) {
+        const stream = event.streams[0];
+        const hasVideo = stream && stream.getVideoTracks && stream.getVideoTracks().length > 0;
+
+        if (hasVideo) {
+          const remoteVideo = document.getElementById("remoteCallVideo");
+          const videoBox = document.getElementById("videoCallBox");
+
+          if (videoBox) {
+            videoBox.style.display = "flex";
+          }
+
+          if (remoteVideo) {
+            remoteVideo.srcObject = stream;
+            remoteVideo.play().catch(() => {});
+          }
+        } else {
+          const audio = document.getElementById("remoteCallAudio");
+          if (audio) {
+            audio.srcObject = stream;
+            audio.play().catch(() => {});
+          }
+        }
+      };
+
+      return callPeerConnection;
+    }
+
+    async function startVoiceCall() {
+      if (!currentRoom) {
+        alert("ادخل محادثة أولًا");
+        return;
+      }
+
+      if (isInCall) {
+        alert("هناك مكالمة تعمل بالفعل");
+        return;
+      }
+
+      try {
+        setCallStatus("جاري بدء المكالمة...");
+        const stream = await prepareLocalAudio();
+        const pc = createCallPeerConnection();
+
+        stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        isInCall = true;
+
+        socket.emit("call-offer", {
+          type: "voice",
+          offer
+        });
+
+        setCallStatus("جاري الاتصال...");
+      } catch (error) {
+        console.log(error);
+        setCallStatus("فشل تشغيل الميكروفون");
+        alert("لم يتم تشغيل الميكروفون. على الهاتف قد تحتاج HTTPS لتعمل المكالمات.");
+        endCall(false);
+      }
+    }
+
+    async function startVideoCall() {
+      if (!currentRoom) {
+        alert("ادخل محادثة أولًا");
+        return;
+      }
+
+      if (isInCall) {
+        alert("هناك مكالمة تعمل بالفعل");
+        return;
+      }
+
+      try {
+        setCallStatus("Starting video call...");
+        const stream = await prepareLocalVideo();
+        const pc = createCallPeerConnection();
+
+        stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        isInCall = true;
+
+        socket.emit("call-offer", {
+          type: "video",
+          offer
+        });
+
+        setCallStatus("Calling with video...");
+      } catch (error) {
+        console.log(error);
+        setCallStatus("Camera failed");
+        alert("Camera or microphone could not start. On phone, video calls may need HTTPS.");
+        endCall(false);
+      }
+    }
+
+    async function acceptVideoCall(data) {
+      try {
+        setCallStatus("Video call accepted...");
+        const stream = await prepareLocalVideo();
+        const pc = createCallPeerConnection();
+
+        stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+        await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        isInCall = true;
+
+        socket.emit("call-answer", {
+          answer
+        });
+
+        setCallStatus("Video call is active");
+      } catch (error) {
+        console.log(error);
+        setCallStatus("Video call failed");
+        alert("Could not start camera or microphone.");
+        endCall(false);
+      }
+    }
+
+    async function acceptVoiceCall(data) {
+      try {
+        setCallStatus("تم قبول المكالمة...");
+        const stream = await prepareLocalAudio();
+        const pc = createCallPeerConnection();
+
+        stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+        await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        isInCall = true;
+
+        socket.emit("call-answer", {
+          answer
+        });
+
+        setCallStatus("المكالمة تعمل الآن");
+      } catch (error) {
+        console.log(error);
+        setCallStatus("فشل قبول المكالمة");
+        alert("تعذر تشغيل الميكروفون لقبول المكالمة.");
+        endCall(false);
+      }
+    }
+
+    function endCall(emitEvent = true) {
+      if (callPeerConnection) {
+        callPeerConnection.close();
+        callPeerConnection = null;
+      }
+
+      if (localCallStream) {
+        localCallStream.getTracks().forEach(track => track.stop());
+        localCallStream = null;
+      }
+
+      isInCall = false;
+
+      const audio = document.getElementById("remoteCallAudio");
+      if (audio) audio.srcObject = null;
+
+      const localVideo = document.getElementById("localCallVideo");
+      if (localVideo) localVideo.srcObject = null;
+
+      const remoteVideo = document.getElementById("remoteCallVideo");
+      if (remoteVideo) remoteVideo.srcObject = null;
+
+      const videoBox = document.getElementById("videoCallBox");
+      if (videoBox) videoBox.style.display = "none";
+
+      setCallStatus("تم إنهاء المكالمة");
+
+      if (emitEvent) {
+        socket.emit("call-end", {});
+      }
+    }
+
+    let pendingIncomingCallData = null;
+
+    function showIncomingCallPopup(data) {
+      pendingIncomingCallData = data;
+      const overlay = document.getElementById("incomingCallOverlay");
+      const icon = document.getElementById("incomingCallIcon");
+      const title = document.getElementById("incomingCallTitle");
+      const text = document.getElementById("incomingCallText");
+
+      const fromName = data && data.from ? data.from : "مستخدم";
+      const isVideoCall = data && data.type === "video";
+
+      if (icon) icon.textContent = isVideoCall ? "📹" : "📞";
+      if (title) title.textContent = isVideoCall ? "مكالمة فيديو واردة" : "مكالمة صوتية واردة";
+      if (text) text.textContent = "مكالمة واردة من: " + fromName;
+
+      if (overlay) overlay.style.display = "flex";
+      setCallStatus("مكالمة واردة من " + fromName);
+    }
+
+    function hideIncomingCallPopup() {
+      const overlay = document.getElementById("incomingCallOverlay");
+      if (overlay) overlay.style.display = "none";
+    }
+
+    async function acceptIncomingCallPopup() {
+      const data = pendingIncomingCallData;
+      pendingIncomingCallData = null;
+      hideIncomingCallPopup();
+
+      if (!data) return;
+
+      const isVideoCall = data.type === "video";
+      if (isVideoCall) {
+        await acceptVideoCall(data);
+      } else {
+        await acceptVoiceCall(data);
+      }
+    }
+
+    function rejectIncomingCallPopup() {
+      pendingIncomingCallData = null;
+      hideIncomingCallPopup();
+      socket.emit("call-reject", {});
+      setCallStatus("تم رفض المكالمة");
+    }
+    socket.on("call-offer", async function(data) {
+      if (!data || !data.offer) return;
+
+      if (isInCall) {
+        socket.emit("call-reject", {});
+        setCallStatus("تم رفض المكالمة لأنك داخل مكالمة أخرى");
+        return;
+      }
+
+      showIncomingCallPopup(data);
+    });
+
+    socket.on("call-answer", async function(data) {
+      if (!data || !callPeerConnection) return;
+
+      try {
+        await callPeerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+        setCallStatus("المكالمة تعمل الآن");
+      } catch (error) {
+        console.log(error);
+        setCallStatus("فشل إكمال المكالمة");
+      }
+    });
+
+    socket.on("call-ice-candidate", async function(data) {
+      if (!data || !data.candidate || !callPeerConnection) return;
+
+      try {
+        await callPeerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    socket.on("call-reject", function(data) {
+      setCallStatus((data && data.from ? data.from : "الطرف الآخر") + " رفض المكالمة");
+      endCall(false);
+    });
+
+    socket.on("call-end", function(data) {
+      setCallStatus((data && data.from ? data.from : "الطرف الآخر") + " أنهى المكالمة");
+      endCall(false);
+    });
+
+
+    function clearCurrentRoomMessages() {
+      if (!currentRoom) return;
+
+      const ok = confirm("هل تريد مسح رسائل هذه المحادثة فقط؟");
+      if (!ok) return;
+
+      socket.emit("clear room messages", {
+        room: currentRoom
+      });
+    }
+
+    socket.on("messages cleared", function(data) {
+      if (!data || !data.room) return;
+
+      messagesByRoom[data.room] = [];
+
+      const last = document.getElementById("last-" + data.room);
+      if (last) {
+        last.innerText = "لا توجد رسائل";
+      }
+
+      if (data.room === currentRoom) {
+        document.getElementById("messages").innerHTML = "";
+        addSystemMessage("تم مسح رسائل هذه المحادثة");
+      }
+
+      renderChats(chatsList);
+    });
     function handleEnter(event) {
       if (event.key === "Enter") {
         sendMessage();
@@ -810,7 +1755,11 @@
       }
 
       if (data.room === currentRoom) {
+        unreadCounts[data.room] = 0;
         addMessageToScreen(data);
+      } else {
+        unreadCounts[data.room] = (unreadCounts[data.room] || 0) + 1;
+        renderChats(chatsList);
       }
     });
 
@@ -844,6 +1793,152 @@
       });
     }
   </script>
+<script id="local-chat-service-worker">
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(function () {
+          console.log("Local Chat service worker registered");
+        })
+        .catch(function (error) {
+          console.log("Service worker registration failed:", error);
+        });
+    });
+  }
+</script>
+  <script>
+    (function () {
+      const LANG_KEY = "localchat_language";
+
+      const statusMap = {
+        "جاهز للمكالمة": "Ready to call",
+        "جاري بدء المكالمة...": "Starting call...",
+        "جاري الاتصال...": "Calling...",
+        "فشل تشغيل الميكروفون": "Microphone failed",
+        "Starting video call...": "Starting video call...",
+        "Calling with video...": "Calling with video...",
+        "Camera failed": "Camera failed",
+        "Video call accepted...": "Video call accepted...",
+        "Video call is active": "Video call is active",
+        "Video call failed": "Video call failed",
+        "تم قبول المكالمة...": "Call accepted...",
+        "المكالمة تعمل الآن": "Call is active",
+        "فشل قبول المكالمة": "Failed to accept call",
+        "تم إنهاء المكالمة": "Call ended",
+        "تم رفض المكالمة": "Call rejected",
+        "تم رفض المكالمة لأنك داخل مكالمة أخرى": "Call rejected because you are already in another call"
+      };
+
+      function getLang() {
+        return localStorage.getItem(LANG_KEY) || "ar";
+      }
+
+      function trStatus(text) {
+        const lang = getLang();
+        if (lang === "ar") return text;
+        if (!text) return text;
+
+        if (statusMap[text]) return statusMap[text];
+
+        if (text.includes("مكالمة واردة من ")) {
+          return text.replace("مكالمة واردة من ", "Incoming call from ");
+        }
+
+        if (text.includes(" رفض المكالمة")) {
+          return text.replace(" رفض المكالمة", " rejected the call");
+        }
+
+        if (text.includes(" أنهى المكالمة")) {
+          return text.replace(" أنهى المكالمة", " ended the call");
+        }
+
+        return text;
+      }
+
+      window.applyAppLanguage = function (lang) {
+        localStorage.setItem(LANG_KEY, lang);
+
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+        document.body.dir = lang === "ar" ? "rtl" : "ltr";
+
+        const btn = document.getElementById("languageToggleBtn");
+        if (btn) btn.textContent = "🌐 Language";
+
+        const voiceBtn = document.querySelector('button[onclick="startVoiceCall()"]');
+        if (voiceBtn) voiceBtn.textContent = lang === "ar" ? "📞 مكالمة صوتية" : "📞 Voice Call";
+
+        const videoBtn = document.querySelector('button[onclick="startVideoCall()"]');
+        if (videoBtn) videoBtn.textContent = lang === "ar" ? "📹 مكالمة فيديو" : "📹 Video Call";
+
+        const endBtn = document.querySelector('button[onclick="endCall()"]');
+        if (endBtn) endBtn.textContent = lang === "ar" ? "إنهاء" : "End";
+
+        const acceptBtn = document.querySelector(".acceptIncomingCallBtn");
+        if (acceptBtn) acceptBtn.textContent = lang === "ar" ? "قبول" : "Accept";
+
+        const rejectBtn = document.querySelector(".rejectIncomingCallBtn");
+        if (rejectBtn) rejectBtn.textContent = lang === "ar" ? "رفض" : "Reject";
+
+        const callStatus = document.getElementById("callStatus");
+        if (callStatus && callStatus.textContent.trim() === "جاهز للمكالمة") {
+          callStatus.textContent = lang === "ar" ? "جاهز للمكالمة" : "Ready to call";
+        }
+      };
+
+      window.toggleAppLanguage = function () {
+        const nextLang = getLang() === "ar" ? "en" : "ar";
+        window.applyAppLanguage(nextLang);
+      };
+
+      window.addEventListener("load", function () {
+        window.applyAppLanguage(getLang());
+
+        if (typeof window.setCallStatus === "function" && !window.setCallStatus.__languageWrapped) {
+          const originalSetCallStatus = window.setCallStatus;
+          window.setCallStatus = function (text) {
+            originalSetCallStatus(trStatus(text));
+          };
+          window.setCallStatus.__languageWrapped = true;
+        }
+
+        if (typeof window.showIncomingCallPopup === "function" && !window.showIncomingCallPopup.__languageWrapped) {
+          const originalShowIncomingCallPopup = window.showIncomingCallPopup;
+          window.showIncomingCallPopup = function (data) {
+            originalShowIncomingCallPopup(data);
+
+            const lang = getLang();
+            if (lang !== "en") return;
+
+            const title = document.getElementById("incomingCallTitle");
+            const text = document.getElementById("incomingCallText");
+            const fromName = data && data.from ? data.from : "User";
+            const isVideoCall = data && data.type === "video";
+
+            if (title) title.textContent = isVideoCall ? "Incoming video call" : "Incoming voice call";
+            if (text) text.textContent = "Incoming call from: " + fromName;
+          };
+          window.showIncomingCallPopup.__languageWrapped = true;
+        }
+      });
+    })();
+  </script>
+  <script>
+    function toggleLanguageMenu() {
+      const box = document.getElementById("worldLanguageBox");
+      if (!box) return;
+      box.classList.toggle("open");
+    }
+
+    document.addEventListener("click", function(e) {
+      const box = document.getElementById("worldLanguageBox");
+      const btn = document.getElementById("languageToggleBtn");
+      if (!box || !btn) return;
+
+      if (box.contains(e.target) || btn.contains(e.target)) return;
+      box.classList.remove("open");
+    });
+  </script>
 </body>
 </html>
 
@@ -859,6 +1954,21 @@
     alert(data.message || "يجب تسجيل الدخول أولا");
   });
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -122,6 +122,7 @@
     <div class="card">
       <h2>إضافة مستخدم جديد</h2>
       <input id="newName" placeholder="اسم المستخدم" />
+      <input id="newPhone" placeholder="رقم الهاتف" inputmode="tel" />
       <input id="newPassword" placeholder="كلمة المرور" />
       <button onclick="addUser()">إضافة / تحديث</button>
       <div class="msg" id="addMsg"></div>
@@ -164,6 +165,7 @@
         div.innerHTML = `
           <div class="userInfo">
             <div class="name">${user.name}</div>
+            <div class="pass">Phone: ${user.phone || "بدون رقم"}</div>
             <div class="pass">PIN: ${user.password || "بدون PIN"}</div>
           </div>
           <button class="danger" onclick="deleteUser('${encodeURIComponent(user.name)}')">حذف</button>
@@ -177,6 +179,7 @@
 
     async function addUser() {
       const name = document.getElementById("newName").value.trim();
+      const phone = document.getElementById("newPhone").value.trim();
       const password = document.getElementById("newPassword").value.trim();
 
       const res = await fetch("/api/users", {
@@ -187,6 +190,7 @@
         body: JSON.stringify({
           admin: admin(),
           name,
+          phone,
           password
         })
       });
@@ -196,6 +200,7 @@
 
       if (data.ok) {
         document.getElementById("newName").value = "";
+        document.getElementById("newPhone").value = "";
         document.getElementById("newPassword").value = "";
         loadUsers();
       }
