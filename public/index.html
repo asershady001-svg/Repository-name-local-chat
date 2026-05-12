@@ -946,10 +946,10 @@
     <div class="nameScreen" id="nameScreen">
       <div class="card">
         <h2>مرحبًا بك في Local Chat</h2>
-        <p>اكتب اسم المستخدم ورقم الهاتف وكلمة المرور للدخول إلى المحادثات</p>
+        <p>اكتب اسم المستخدم ورقم الهاتف فقط للدخول إلى المحادثات</p>
                 <input id="nameInput" placeholder="اسم المستخدم" />
         <input id="phoneInput" placeholder="رقم الهاتف" inputmode="tel" style="margin-top: 10px;" />
-        <input id="passwordInput" type="password" placeholder="كلمة المرور" style="margin-top: 10px;" />
+        
         <button class="mainBtn" onclick="saveName()">متابعة</button>
       </div>
     </div>
@@ -1070,9 +1070,6 @@
     function saveName() {
       const inputName = document.getElementById("nameInput").value.trim();
       const inputPhone = document.getElementById("phoneInput").value.trim();
-      const inputPassword = document.getElementById("passwordInput").value.trim();
-
-      const canLoginWithoutPin = inputName === "أسر" || inputName === "اسر";
 
       if (!inputName) {
         alert("اكتب اسم المستخدم");
@@ -1084,15 +1081,9 @@
         return;
       }
 
-      if (!canLoginWithoutPin && !inputPassword) {
-        alert("اكتب كلمة المرور");
-        return;
-      }
-
       socket.emit("login", {
         name: inputName,
-        phone: inputPhone,
-        password: inputPassword
+        phone: inputPhone
       }, function(response) {
         if (!response || !response.ok) {
           alert(response && response.message ? response.message : "فشل تسجيل الدخول");
@@ -1105,10 +1096,14 @@
         document.getElementById("chatList").style.display = "block";
         document.getElementById("topTitle").innerText = "المحادثات";
         document.getElementById("topSubtitle").innerText = username + " متصل";
+
         loadChats();
+
+        setTimeout(function() {
+          socket.emit("request online users");
+        }, 500);
       });
     }
-
     function openRoom(room, roomName, avatar) {
       currentRoom = room;
       unreadCounts[room] = 0;
@@ -1981,6 +1976,7 @@
     alert(data.message || "يجب تسجيل الدخول أولا");
   });
 </script>
+
 
 
 

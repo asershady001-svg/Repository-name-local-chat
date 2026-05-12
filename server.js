@@ -297,8 +297,6 @@ io.on("connection", (socket) => {
   socket.on("login", (data, callback) => {
     const name = String(data.name || "").trim();
     const phone = String(data.phone || "").trim();
-    const password = String(data.password || "").trim();
-    const canLoginWithoutPin = name === "أسر" || name === "اسر";
 
     if (!name) {
       callback({ ok: false, message: "اكتب اسم المستخدم" });
@@ -307,16 +305,6 @@ io.on("connection", (socket) => {
 
     if (!phone) {
       callback({ ok: false, message: "اكتب رقم الهاتف" });
-      return;
-    }
-
-    if (!canLoginWithoutPin && !password) {
-      callback({ ok: false, message: "اكتب كلمة المرور" });
-      return;
-    }
-
-    if (!canLoginWithoutPin && password.length < 3) {
-      callback({ ok: false, message: "كلمة المرور يجب أن تكون 3 أحرف أو أرقام على الأقل" });
       return;
     }
 
@@ -329,33 +317,30 @@ io.on("connection", (socket) => {
 
     if (existingUserByPhone) {
       const savedName = existingUserByPhone[0];
-      const savedValue = existingUserByPhone[1];
-      const savedPassword = savedValue.password || "";
-
-      if (!canLoginWithoutPin && savedPassword !== password) {
-        callback({ ok: false, message: "كلمة المرور غير صحيحة" });
-        console.log("Login failed wrong password for phone:", phone);
-        return;
-      }
 
       socket.isLoggedIn = true;
       socket.username = savedName;
       socket.phone = phone;
 
+      if (typeof onlineUsers !== "undefined") {
+        onlineUsers[socket.id] = { name: socket.username, phone: socket.phone };
+        broadcastOnlineUsers();
+      }
+
       callback({ ok: true, name: savedName, phone, newUser: false });
-      console.log("Login success by phone:", savedName, phone);
+      console.log("Login success by phone without password:", savedName, phone);
       return;
     }
 
     if (Object.prototype.hasOwnProperty.call(allowedUsers, name)) {
-      callback({ ok: false, message: "اسم المستخدم موجود بالفعل. اكتب رقم الهاتف وكلمة المرور للحساب القديم أو اختر اسما آخر." });
+      callback({ ok: false, message: "اسم المستخدم موجود بالفعل مع رقم آخر. اختر اسما آخر أو ادخل برقم الهاتف القديم." });
       console.log("Register rejected duplicate name:", name);
       return;
     }
 
     allowedUsers[name] = {
       phone,
-      password: canLoginWithoutPin ? "" : password
+      password: ""
     };
 
     saveUsers();
@@ -364,9 +349,20 @@ io.on("connection", (socket) => {
     socket.username = name;
     socket.phone = phone;
 
+    if (typeof onlineUsers !== "undefined") {
+      onlineUsers[socket.id] = { name: socket.username, phone: socket.phone };
+      broadcastOnlineUsers();
+    }
+
     callback({ ok: true, name, phone, newUser: true });
-    console.log("New user registered:", name, phone);
+    console.log("New user registered without password:", name, phone);
   });
+  socket.on("request online users", () => {
+    if (typeof onlineUsers !== "undefined") {
+      socket.emit("online users", getOnlineUsersList());
+    }
+  });
+
   socket.on("join room", (data) => {
     if (!socket.isLoggedIn) {
       socket.emit("login required", { message: "يجب تسجيل الدخول أولًا" });
@@ -516,6 +512,7 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 3000; server.listen(PORT, "0.0.0.0", () => {
   console.log("Local Chat is running on http://localhost:3000");
 });
+
 
 
 
