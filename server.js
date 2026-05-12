@@ -274,6 +274,16 @@ app.delete("/api/chats/:id", (req, res) => {
   res.json({ ok: true, message: "تم حذف الدردشة" });
 });
 
+const onlineUsers = {};
+
+function getOnlineUsersList() {
+  return Object.values(onlineUsers);
+}
+
+function broadcastOnlineUsers() {
+  io.emit("online users", getOnlineUsersList());
+}
+
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
@@ -305,47 +315,36 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const userExists = Object.prototype.hasOwnProperty.call(allowedUsers, name);
-    const savedValue = allowedUsers[name];
+    const existingUserByPhone = Object.entries(allowedUsers).find(([existingName, existingValue]) => {
+      if (existingValue && typeof existingValue === "object") {
+        return String(existingValue.phone || "").trim() === phone;
+      }
+      return false;
+    });
 
-    let savedPassword = "";
-    let savedPhone = "";
+    if (existingUserByPhone) {
+      const savedName = existingUserByPhone[0];
+      const savedValue = existingUserByPhone[1];
+      const savedPassword = savedValue.password || "";
 
-    if (savedValue && typeof savedValue === "object") {
-      savedPassword = savedValue.password || "";
-      savedPhone = savedValue.phone || "";
-    } else {
-      savedPassword = savedValue || "";
-    }
-
-    if (userExists) {
       if (!canLoginWithoutPin && savedPassword !== password) {
         callback({ ok: false, message: "كلمة المرور غير صحيحة" });
-        console.log("Login failed wrong password:", name);
+        console.log("Login failed wrong password for phone:", phone);
         return;
       }
-
-      if (savedPhone && savedPhone !== phone) {
-        callback({ ok: false, message: "رقم الهاتف غير مطابق لهذا المستخدم" });
-        console.log("Login failed wrong phone:", name);
-        return;
-      }
-
-      const phoneAlreadyRegistered = Object.entries(allowedUsers).some(([existingName, existingValue]) => { if (existingName === name) return false; if (existingValue && typeof existingValue === "object") { return String(existingValue.phone || "").trim() === phone; } return false; });
-
-    if (phoneAlreadyRegistered) { callback({ ok: false, message: "This phone number is already registered. Please login with the old account." }); console.log("Register rejected duplicate phone:", name, phone); return; }
-
-    allowedUsers[name] = {
-        phone: savedPhone || phone,
-        password: canLoginWithoutPin ? "" : savedPassword
-      };
-      saveUsers();
 
       socket.isLoggedIn = true;
-      socket.username = name;
+      socket.username = savedName;
       socket.phone = phone;
-      callback({ ok: true, name, phone, newUser: false });
-      console.log("Login success:", name, phone);
+
+      callback({ ok: true, name: savedName, phone, newUser: false });
+      console.log("Login success by phone:", savedName, phone);
+      return;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(allowedUsers, name)) {
+      callback({ ok: false, message: "اسم المستخدم موجود بالفعل. اكتب رقم الهاتف وكلمة المرور للحساب القديم أو اختر اسما آخر." });
+      console.log("Register rejected duplicate name:", name);
       return;
     }
 
@@ -353,15 +352,16 @@ io.on("connection", (socket) => {
       phone,
       password: canLoginWithoutPin ? "" : password
     };
+
     saveUsers();
 
     socket.isLoggedIn = true;
     socket.username = name;
     socket.phone = phone;
+
     callback({ ok: true, name, phone, newUser: true });
     console.log("New user registered:", name, phone);
   });
-
   socket.on("join room", (data) => {
     if (!socket.isLoggedIn) {
       socket.emit("login required", { message: "يجب تسجيل الدخول أولًا" });
@@ -390,6 +390,12 @@ io.on("connection", (socket) => {
     socket.to(room).emit("system message", {
       text: socket.username + " دخل المحادثة"
     });
+  });
+
+  socket.on("disconnect", () => {
+    delete onlineUsers[socket.id];
+    broadcastOnlineUsers();
+    console.log("User disconnected:", socket.id);
   });
 
   socket.on("chat message", (data) => {
@@ -505,6 +511,8 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 3000; server.listen(PORT, "0.0.0.0", () => {
   console.log("Local Chat is running on http://localhost:3000");
 });
+
+
 
 
 

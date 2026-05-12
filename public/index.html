@@ -1006,6 +1006,15 @@
     const messagesByRoom = {};
     const unreadCounts = {};
     let chatsList = [];
+    let onlinePrivateChats = [];
+
+    function makePrivateRoomId(firstName, secondName) {
+      return "private:" + [firstName, secondName].sort().join("__");
+    }
+
+    function refreshChatList() {
+      renderChats(onlinePrivateChats.concat(chatsList));
+    }
 
     async function loadChats() {
       const res = await fetch("/api/chats-public");
@@ -1014,7 +1023,7 @@
       if (!data.ok) return;
 
       chatsList = data.chats || [];
-      renderChats(chatsList);
+      refreshChatList();
     }
 
     function renderChats(list) {
@@ -1103,7 +1112,7 @@
     function openRoom(room, roomName, avatar) {
       currentRoom = room;
       unreadCounts[room] = 0;
-      renderChats(chatsList);
+      refreshChatList();
 
       document.getElementById("chatList").style.display = "none";
       document.getElementById("chatScreen").style.display = "flex";
@@ -1626,7 +1635,7 @@
         addSystemMessage("تم مسح رسائل هذه المحادثة");
       }
 
-      renderChats(chatsList);
+      refreshChatList();
     });
     function handleEnter(event) {
       if (event.key === "Enter") {
@@ -1724,6 +1733,24 @@
       });
     }
 
+    socket.on("online users", function(users) {
+      if (!Array.isArray(users) || !username) return;
+
+      onlinePrivateChats = users
+        .filter(function(user) {
+          return user && user.name && user.name !== username;
+        })
+        .map(function(user) {
+          return {
+            id: makePrivateRoomId(username, user.name),
+            name: "خاص: " + user.name,
+            avatar: "👤"
+          };
+        });
+
+      refreshChatList();
+    });
+
     socket.on("room history", (data) => {
       if (!messagesByRoom[data.room]) {
         messagesByRoom[data.room] = [];
@@ -1759,7 +1786,7 @@
         addMessageToScreen(data);
       } else {
         unreadCounts[data.room] = (unreadCounts[data.room] || 0) + 1;
-        renderChats(chatsList);
+        refreshChatList();
       }
     });
 
@@ -1954,6 +1981,7 @@
     alert(data.message || "يجب تسجيل الدخول أولا");
   });
 </script>
+
 
 
 
