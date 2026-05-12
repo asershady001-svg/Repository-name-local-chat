@@ -6,64 +6,7 @@
   <title>Local Chat</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#00a884">
-    <div class="incomingCallOverlay" id="incomingCallOverlay">
-    <div class="incomingCallCard">
-      <div class="incomingCallIcon" id="incomingCallIcon">📞</div>
-      <div class="incomingCallTitle" id="incomingCallTitle">مكالمة واردة</div>
-      <div class="incomingCallText" id="incomingCallText">لديك مكالمة واردة</div>
-      <div class="incomingCallActions">
-        <button class="acceptIncomingCallBtn" onclick="acceptIncomingCallPopup()">قبول</button>
-        <button class="rejectIncomingCallBtn" onclick="rejectIncomingCallPopup()">رفض</button>
-      </div>
-    </div>
-  </div>
-    <div class="languageToggleBox">
-    <button class="languageToggleBtn" id="languageToggleBtn" onclick="toggleLanguageMenu()">🌐 Language</button>
-  </div>
-    <div class="worldLanguageBox" id="worldLanguageBox">
-    <select id="worldLanguageSelect" title="Choose language">
-      <option value="">🌐 اختر اللغة / Language</option>
-      <option value="ar">العربية</option>
-      <option value="en">English</option>
-      <option value="fr">Français</option>
-      <option value="es">Español</option>
-      <option value="de">Deutsch</option>
-      <option value="it">Italiano</option>
-      <option value="pt">Português</option>
-      <option value="ru">Русский</option>
-      <option value="tr">Türkçe</option>
-      <option value="fa">فارسی</option>
-      <option value="ur">اردو</option>
-      <option value="hi">हिन्दी</option>
-      <option value="bn">বাংলা</option>
-      <option value="zh-CN">中文 简体</option>
-      <option value="zh-TW">中文 繁體</option>
-      <option value="ja">日本語</option>
-      <option value="ko">한국어</option>
-      <option value="id">Bahasa Indonesia</option>
-      <option value="ms">Bahasa Melayu</option>
-      <option value="th">ไทย</option>
-      <option value="vi">Tiếng Việt</option>
-      <option value="nl">Nederlands</option>
-      <option value="pl">Polski</option>
-      <option value="uk">Українська</option>
-      <option value="el">Ελληνικά</option>
-      <option value="he">עברית</option>
-      <option value="sw">Kiswahili</option>
-      <option value="am">አማርኛ</option>
-      <option value="so">Soomaali</option>
-      <option value="ha">Hausa</option>
-      <option value="yo">Yorùbá</option>
-      <option value="af">Afrikaans</option>
-      <option value="ro">Română</option>
-      <option value="cs">Čeština</option>
-      <option value="sv">Svenska</option>
-      <option value="no">Norsk</option>
-      <option value="da">Dansk</option>
-      <option value="fi">Suomi</option>
-    </select>
-    <button onclick="translateCurrentPage()">ترجمة</button>
-  </div>
+
   <script src="/socket.io/socket.io.js"></script>
 
   <style>
@@ -933,6 +876,67 @@
 </head>
 
 <body>
+  <div class="incomingCallOverlay" id="incomingCallOverlay">
+    <div class="incomingCallCard">
+      <div class="incomingCallIcon" id="incomingCallIcon">📞</div>
+      <div class="incomingCallTitle" id="incomingCallTitle">مكالمة واردة</div>
+      <div class="incomingCallText" id="incomingCallText">لديك مكالمة واردة</div>
+      <div class="incomingCallActions">
+        <button class="acceptIncomingCallBtn" onclick="acceptIncomingCallPopup()">قبول</button>
+        <button class="rejectIncomingCallBtn" onclick="rejectIncomingCallPopup()">رفض</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="languageToggleBox">
+    <button class="languageToggleBtn" id="languageToggleBtn" onclick="toggleLanguageMenu()">🌐 Language</button>
+  </div>
+
+  <div class="worldLanguageBox" id="worldLanguageBox">
+    <select id="worldLanguageSelect" title="Choose language">
+      <option value="">🌐 اختر اللغة / Language</option>
+      <option value="ar">العربية</option>
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+      <option value="es">Español</option>
+      <option value="de">Deutsch</option>
+      <option value="it">Italiano</option>
+      <option value="pt">Português</option>
+      <option value="ru">Русский</option>
+      <option value="tr">Türkçe</option>
+      <option value="fa">فارسی</option>
+      <option value="ur">اردو</option>
+      <option value="hi">हिन्दी</option>
+      <option value="bn">বাংলা</option>
+      <option value="zh-CN">中文 简体</option>
+      <option value="zh-TW">中文 繁體</option>
+      <option value="ja">日本語</option>
+      <option value="ko">한국어</option>
+      <option value="id">Bahasa Indonesia</option>
+      <option value="ms">Bahasa Melayu</option>
+      <option value="th">ไทย</option>
+      <option value="vi">Tiếng Việt</option>
+      <option value="nl">Nederlands</option>
+      <option value="pl">Polski</option>
+      <option value="uk">Українська</option>
+      <option value="el">Ελληνικά</option>
+      <option value="he">עברית</option>
+      <option value="sw">Kiswahili</option>
+      <option value="am">አማርኛ</option>
+      <option value="so">Soomaali</option>
+      <option value="ha">Hausa</option>
+      <option value="yo">Yorùbá</option>
+      <option value="af">Afrikaans</option>
+      <option value="ro">Română</option>
+      <option value="cs">Čeština</option>
+      <option value="sv">Svenska</option>
+      <option value="no">Norsk</option>
+      <option value="da">Dansk</option>
+      <option value="fi">Suomi</option>
+    </select>
+    <button onclick="translateCurrentPage()">ترجمة</button>
+  </div>
+
   <div class="app">
     <div class="topbar">
       <button class="back" id="backBtn" onclick="backToList()">‹</button>
@@ -2046,46 +2050,12 @@
       box.classList.remove("open");
     });
   </script>
+
+  <script>
+    socket.on("login required", function(data) {
+      alert(data.message || "يجب تسجيل الدخول أولا");
+    });
+  </script>
+
 </body>
 </html>
-
-
-<script>
-  socket.on("login required", function(data) {
-    alert(data.message || "يجب تسجيل الدخول أولًا");
-  });
-</script>
-
-<script>
-  socket.on("login required", function(data) {
-    alert(data.message || "يجب تسجيل الدخول أولا");
-  });
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
