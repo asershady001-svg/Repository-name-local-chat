@@ -14,9 +14,14 @@ const io = new Server(server, {
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json({ limit: "20mb" }));
 
+app.get("/api/app-version", (req, res) => {
+  res.json({ ok: true, version: APP_VERSION });
+});
+
 const messagesFile = path.join(__dirname, "messages.json");
 const usersFile = path.join(__dirname, "users.json");
 const chatsFile = path.join(__dirname, "chats.json");
+const APP_VERSION = "login-fix-private-chat-2026-05-12-2128";
 
 let allowedUsers = {
   "أسر": "",
@@ -511,6 +516,7 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 3000; server.listen(PORT, "0.0.0.0", () => {
   console.log("Local Chat is running on http://localhost:3000");
 });
+
 
 
 
