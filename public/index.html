@@ -2169,6 +2169,16 @@
     });
   </script>
 
+  <script>
+    function translateCurrentPage() {
+      const select = document.getElementById("worldLanguageSelect");
+      const selectedLang = select && select.value ? select.value : "ar";
+      const appLang = selectedLang === "ar" ? "ar" : "en";
+      if (window.applyAppLanguage) window.applyAppLanguage(appLang);
+      const box = document.getElementById("worldLanguageBox");
+      if (box) box.classList.remove("open");
+    }
+  </script>
 </body>
 </html>
 
