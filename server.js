@@ -434,6 +434,24 @@ io.on("connection", (socket) => {
     }
 
     if (Object.prototype.hasOwnProperty.call(allowedUsers, name)) {
+      const oldUserValue = allowedUsers[name];
+      if (!oldUserValue || typeof oldUserValue !== "object") {
+        allowedUsers[name] = { phone, password: "" };
+        saveUsers();
+        socket.isLoggedIn = true;
+        socket.username = name;
+        socket.phone = phone;
+        if (typeof onlineUsers !== "undefined") {
+          onlineUsers[socket.id] = { name: socket.username, phone: socket.phone };
+          broadcastOnlineUsers();
+        }
+        callback({ ok: true, name, phone, newUser: false });
+        console.log("Legacy user upgraded by phone:", name, phone);
+        return;
+      }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(allowedUsers, name)) {
       callback({ ok: false, message: "Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ù…ÙˆØ¬ÙˆØ¯ Ø¨Ø§Ù„ÙØ¹Ù„ Ù…Ø¹ Ø±Ù‚Ù… Ø¢Ø®Ø±. Ø§Ø®ØªØ± Ø§Ø³Ù…Ø§ Ø¢Ø®Ø± Ø£Ùˆ Ø§Ø¯Ø®Ù„ Ø¨Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ Ø§Ù„Ù‚Ø¯ÙŠÙ…." });
       console.log("Register rejected duplicate name:", name);
       return;
