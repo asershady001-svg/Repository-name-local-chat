@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
@@ -239,6 +239,29 @@ app.delete("/api/users/:name", (req, res) => {
 
 app.get("/api/chats-public", (req, res) => {
   res.json({ ok: true, chats });
+});
+
+app.get("/api/message-chats", (req, res) => {
+  const username = String(req.query.username || "").trim();
+  if (!username) return res.json({ ok: false, message: "username required" });
+  const result = Object.keys(messageHistory || {})
+    .filter(room => room.startsWith("private:"))
+    .filter(room => room.replace("private:", "").split("__").includes(username))
+    .map(room => {
+      const names = room.replace("private:", "").split("__");
+      const otherName = names.find(n => n !== username) || "محادثة";
+      const msgs = messageHistory[room] || [];
+      const last = msgs.length ? msgs[msgs.length - 1] : null;
+      return {
+        id: room,
+        name: otherName,
+        avatar: "👤",
+        registered: true,
+        lastText: last ? (last.text || "") : "",
+        lastDate: last ? (last.date || "") : ""
+      };
+    });
+  res.json({ ok: true, chats: result });
 });
 
 app.get("/api/contacts", (req, res) => {

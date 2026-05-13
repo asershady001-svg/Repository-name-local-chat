@@ -1043,13 +1043,15 @@
 
     async function loadChats() {
       if (!username) return;
-      const res = await fetch("/api/contacts?username=" + encodeURIComponent(username));
-      const data = await res.json();
+      const contactsRes = await fetch("/api/contacts?username=" + encodeURIComponent(username));
+      const contactsData = await contactsRes.json();
+      const messageRes = await fetch("/api/message-chats?username=" + encodeURIComponent(username));
+      const messageData = await messageRes.json();
 
-      if (!data.ok) return;
+      const contactList = contactsData.ok ? (contactsData.contacts || []) : [];
+      const messageList = messageData.ok ? (messageData.chats || []) : [];
 
-      const list = data.contacts || [];
-      chatsList = list.map(function(contact) {
+      const fromContacts = contactList.map(function(contact) {
         const contactName = contact.name || contact.displayName || "Contact";
         const roomId = contact.registered ? makePrivateRoomId(username, contactName) : ("notregistered:" + (contact.phone || ""));
         return {
@@ -1060,6 +1062,15 @@
           registered: !!contact.registered
         };
       });
+
+      const merged = fromContacts.slice();
+      messageList.forEach(function(chat) {
+        if (!merged.some(function(existing) { return existing.id === chat.id; })) {
+          merged.push(chat);
+        }
+      });
+
+      chatsList = merged;
       refreshChatList();
     }
 
