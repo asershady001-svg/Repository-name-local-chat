@@ -21,29 +21,23 @@ app.get("/api/app-version", (req, res) => {
 const messagesFile = path.join(__dirname, "messages.json");
 const usersFile = path.join(__dirname, "users.json");
 const chatsFile = path.join(__dirname, "chats.json");
+const contactsFile = path.join(__dirname, "contacts.json");
 const APP_VERSION = "login-fix-private-chat-2026-05-12-2128";
 
 let allowedUsers = {
-  "أسر": "",
-  "اسر": "",
-  "محمد": "1234",
-  "شادي": "1234",
-  "جودي": "1234",
-  "عمر": "1234",
+  "Ø£Ø³Ø±": "",
+  "Ø§Ø³Ø±": "",
+  "Ù…Ø­Ù…Ø¯": "1234",
+  "Ø´Ø§Ø¯ÙŠ": "1234",
+  "Ø¬ÙˆØ¯ÙŠ": "1234",
+  "Ø¹Ù…Ø±": "1234",
   "admin": "admin123"
 };
 
-let chats = [
-  { id: "family", name: "دردشة العائلة", avatar: "ع" },
-  { id: "friends", name: "الأصدقاء", avatar: "ص" },
-  { id: "work", name: "العمل", avatar: "ع" }
-];
+let chats = [];
 
-let messageHistory = {
-  family: [],
-  friends: [],
-  work: []
-};
+let messageHistory = {};
+let contacts = {};
 
 function saveUsers() {
   try {
@@ -59,8 +53,8 @@ function loadUsers() {
       const data = fs.readFileSync(usersFile, "utf8");
       const savedUsers = JSON.parse(data);
       allowedUsers = { ...allowedUsers, ...savedUsers };
-      allowedUsers["أسر"] = allowedUsers["أسر"] || "";
-      allowedUsers["اسر"] = allowedUsers["اسر"] || "";
+      allowedUsers["Ø£Ø³Ø±"] = allowedUsers["Ø£Ø³Ø±"] || "";
+      allowedUsers["Ø§Ø³Ø±"] = allowedUsers["Ø§Ø³Ø±"] || "";
       saveUsers();
       console.log("Users loaded from users.json");
     } else {
@@ -69,6 +63,30 @@ function loadUsers() {
     }
   } catch (error) {
     console.log("Error loading users.json:", error.message);
+  }
+}
+
+function saveContacts() {
+  try {
+    fs.writeFileSync(contactsFile, JSON.stringify(contacts, null, 2), "utf8");
+  } catch (error) {
+    console.log("Error saving contacts.json:", error.message);
+  }
+}
+
+function loadContacts() {
+  try {
+    if (fs.existsSync(contactsFile)) {
+      const data = fs.readFileSync(contactsFile, "utf8").replace(/^\uFEFF/, "");
+      contacts = JSON.parse(data || "{}") || {};
+      saveContacts();
+      console.log("Contacts loaded from contacts.json");
+    } else {
+      saveContacts();
+      console.log("contacts.json created");
+    }
+  } catch (error) {
+    console.log("Error loading contacts.json:", error.message);
   }
 }
 
@@ -139,11 +157,12 @@ function isAdminRequest(req) {
 
 loadUsers();
 loadChats();
+loadContacts();
 loadMessages();
 
 app.get("/api/users", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "غير مصرح" });
+    return res.status(403).json({ ok: false, message: "ØºÙŠØ± Ù…ØµØ±Ø­" });
   }
 
   const users = Object.keys(allowedUsers).map(name => {
@@ -169,7 +188,7 @@ app.get("/api/users", (req, res) => {
 
 app.post("/api/users", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "غير مصرح" });
+    return res.status(403).json({ ok: false, message: "ØºÙŠØ± Ù…ØµØ±Ø­" });
   }
 
   const name = String(req.body.name || "").trim();
@@ -177,15 +196,15 @@ app.post("/api/users", (req, res) => {
   const password = String(req.body.password || "").trim();
 
   if (!name) {
-    return res.json({ ok: false, message: "اكتب اسم المستخدم" });
+    return res.json({ ok: false, message: "Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…" });
   }
 
   if (!phone) {
-    return res.json({ ok: false, message: "اكتب رقم الهاتف" });
+    return res.json({ ok: false, message: "Ø§ÙƒØªØ¨ Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ" });
   }
 
-  if (name !== "أسر" && name !== "اسر" && password.length < 3) {
-    return res.json({ ok: false, message: "كلمة المرور قصيرة جدًا" });
+  if (name !== "Ø£Ø³Ø±" && name !== "Ø§Ø³Ø±" && password.length < 3) {
+    return res.json({ ok: false, message: "ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ù‚ØµÙŠØ±Ø© Ø¬Ø¯Ù‹Ø§" });
   }
 
   allowedUsers[name] = {
@@ -194,37 +213,65 @@ app.post("/api/users", (req, res) => {
   };
   saveUsers();
 
-  res.json({ ok: true, message: "تم حفظ المستخدم" });
+  res.json({ ok: true, message: "ØªÙ… Ø­ÙØ¸ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…" });
 });
 
 app.delete("/api/users/:name", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "غير مصرح" });
+    return res.status(403).json({ ok: false, message: "ØºÙŠØ± Ù…ØµØ±Ø­" });
   }
 
   const name = decodeURIComponent(req.params.name);
 
   if (name === "admin") {
-    return res.json({ ok: false, message: "لا يمكن حذف admin" });
+    return res.json({ ok: false, message: "Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø­Ø°Ù admin" });
   }
 
-  if (name === "أسر" || name === "اسر") {
-    return res.json({ ok: false, message: "لا يمكن حذف أسر" });
+  if (name === "Ø£Ø³Ø±" || name === "Ø§Ø³Ø±") {
+    return res.json({ ok: false, message: "Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø­Ø°Ù Ø£Ø³Ø±" });
   }
 
   delete allowedUsers[name];
   saveUsers();
 
-  res.json({ ok: true, message: "تم حذف المستخدم" });
+  res.json({ ok: true, message: "ØªÙ… Ø­Ø°Ù Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…" });
 });
 
 app.get("/api/chats-public", (req, res) => {
   res.json({ ok: true, chats });
 });
 
+app.get("/api/contacts", (req, res) => {
+  const username = String(req.query.username || "").trim();
+  if (!username) return res.json({ ok: false, message: "Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ù…Ø·Ù„ÙˆØ¨" });
+  res.json({ ok: true, contacts: contacts[username] || [] });
+});
+
+app.post("/api/contacts", (req, res) => {
+  const username = String(req.body.username || "").trim();
+  const name = String(req.body.name || "").trim();
+  const phone = String(req.body.phone || "").trim();
+  if (!username || !name || !phone) return res.json({ ok: false, message: "Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… ÙˆØ§Ø³Ù… Ø§Ù„ÙƒÙˆÙ†ØªØ§ÙƒØª ÙˆØ±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ" });
+  const foundUser = Object.entries(allowedUsers).find(([savedName, savedValue]) => {
+    if (savedValue && typeof savedValue === "object") return String(savedValue.phone || "").trim() === phone;
+    return false;
+  });
+  if (!contacts[username]) contacts[username] = [];
+  if (contacts[username].some(c => String(c.phone || "").trim() === phone)) return res.json({ ok: false, message: "Ù‡Ø°Ø§ Ø§Ù„ÙƒÙˆÙ†ØªØ§ÙƒØª Ù…ÙˆØ¬ÙˆØ¯ Ø¨Ø§Ù„ÙØ¹Ù„" });
+  const contact = {
+    name: foundUser ? foundUser[0] : name,
+    displayName: name,
+    phone,
+    registered: !!foundUser
+  };
+  contacts[username].push(contact);
+  saveContacts();
+  res.json({ ok: true, contact });
+});
+
 app.get("/api/chats", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "غير مصرح" });
+    return res.status(403).json({ ok: false, message: "ØºÙŠØ± Ù…ØµØ±Ø­" });
   }
 
   res.json({ ok: true, chats });
@@ -232,14 +279,14 @@ app.get("/api/chats", (req, res) => {
 
 app.post("/api/chats", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "غير مصرح" });
+    return res.status(403).json({ ok: false, message: "ØºÙŠØ± Ù…ØµØ±Ø­" });
   }
 
   const name = String(req.body.name || "").trim();
-  const avatar = String(req.body.avatar || "").trim() || "د";
+  const avatar = String(req.body.avatar || "").trim() || "Ø¯";
 
   if (!name) {
-    return res.json({ ok: false, message: "اكتب اسم الدردشة" });
+    return res.json({ ok: false, message: "Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ø§Ù„Ø¯Ø±Ø¯Ø´Ø©" });
   }
 
   const id = "room_" + Date.now();
@@ -256,19 +303,17 @@ app.post("/api/chats", (req, res) => {
   saveChats();
   saveMessages();
 
-  res.json({ ok: true, message: "تمت إضافة الدردشة", chat });
+  res.json({ ok: true, message: "ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø¯Ø±Ø¯Ø´Ø©", chat });
 });
 
 app.delete("/api/chats/:id", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "غير مصرح" });
+    return res.status(403).json({ ok: false, message: "ØºÙŠØ± Ù…ØµØ±Ø­" });
   }
 
   const id = decodeURIComponent(req.params.id);
 
-  if (id === "family") {
-    return res.json({ ok: false, message: "لا يمكن حذف دردشة العائلة الأساسية" });
-  }
+  
 
   chats = chats.filter(chat => chat.id !== id);
   delete messageHistory[id];
@@ -276,7 +321,7 @@ app.delete("/api/chats/:id", (req, res) => {
   saveChats();
   saveMessages();
 
-  res.json({ ok: true, message: "تم حذف الدردشة" });
+  res.json({ ok: true, message: "ØªÙ… Ø­Ø°Ù Ø§Ù„Ø¯Ø±Ø¯Ø´Ø©" });
 });
 
 const onlineUsers = {};
@@ -332,12 +377,12 @@ io.on("connection", (socket) => {
     const phone = String(data.phone || "").trim();
 
     if (!name) {
-      callback({ ok: false, message: "اكتب اسم المستخدم" });
+      callback({ ok: false, message: "Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…" });
       return;
     }
 
     if (!phone) {
-      callback({ ok: false, message: "اكتب رقم الهاتف" });
+      callback({ ok: false, message: "Ø§ÙƒØªØ¨ Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ" });
       return;
     }
 
@@ -366,7 +411,7 @@ io.on("connection", (socket) => {
     }
 
     if (Object.prototype.hasOwnProperty.call(allowedUsers, name)) {
-      callback({ ok: false, message: "اسم المستخدم موجود بالفعل مع رقم آخر. اختر اسما آخر أو ادخل برقم الهاتف القديم." });
+      callback({ ok: false, message: "Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ù…ÙˆØ¬ÙˆØ¯ Ø¨Ø§Ù„ÙØ¹Ù„ Ù…Ø¹ Ø±Ù‚Ù… Ø¢Ø®Ø±. Ø§Ø®ØªØ± Ø§Ø³Ù…Ø§ Ø¢Ø®Ø± Ø£Ùˆ Ø§Ø¯Ø®Ù„ Ø¨Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ Ø§Ù„Ù‚Ø¯ÙŠÙ…." });
       console.log("Register rejected duplicate name:", name);
       return;
     }
@@ -398,11 +443,11 @@ io.on("connection", (socket) => {
 
   socket.on("join room", (data) => {
     if (!socket.isLoggedIn) {
-      socket.emit("login required", { message: "يجب تسجيل الدخول أولًا" });
+      socket.emit("login required", { message: "ÙŠØ¬Ø¨ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø£ÙˆÙ„Ù‹Ø§" });
       return;
     }
 
-    const room = String(data.room || "family");
+    const room = String(data.room || "");
 
     if (socket.currentRoom) {
       socket.leave(socket.currentRoom);
@@ -422,7 +467,7 @@ io.on("connection", (socket) => {
     });
 
     socket.to(room).emit("system message", {
-      text: socket.username + " دخل المحادثة"
+      text: socket.username + " Ø¯Ø®Ù„ Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø©"
     });
   });
 
@@ -491,7 +536,7 @@ io.on("connection", (socket) => {
   socket.on("call-offer", (data) => {
     if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
     if (!socket.currentRoom.startsWith("private:")) {
-      socket.emit("call-reject", { from: "Local Chat", reason: "المكالمات متاحة في المحادثات الخاصة فقط" });
+      socket.emit("call-reject", { from: "Local Chat", reason: "Ø§Ù„Ù…ÙƒØ§Ù„Ù…Ø§Øª Ù…ØªØ§Ø­Ø© ÙÙŠ Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø§Øª Ø§Ù„Ø®Ø§ØµØ© ÙÙ‚Ø·" });
       return;
     }
 
@@ -553,6 +598,10 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 3000; server.listen(PORT, "0.0.0.0", () => {
   console.log("Local Chat is running on http://localhost:3000");
 });
+
+
+
+
 
 
 
