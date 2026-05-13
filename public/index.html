@@ -2069,6 +2069,22 @@
         document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
         document.body.dir = lang === "ar" ? "rtl" : "ltr";
 
+        const topTitleLang = document.getElementById("topTitle");
+        const topSubtitleLang = document.getElementById("topSubtitle");
+        const nameInputLang = document.getElementById("nameInput");
+        const phoneInputLang = document.getElementById("phoneInput");
+        const messageInputLang = document.getElementById("messageInput");
+        const searchInputLang = document.querySelector(".searchBox input");
+        const syncBtnLang = document.querySelector('.searchBox button[onclick="syncPhoneContacts()"]');
+
+        if (nameInputLang) nameInputLang.placeholder = lang === "ar" ? "اسم المستخدم" : "Username";
+        if (phoneInputLang) phoneInputLang.placeholder = lang === "ar" ? "رقم الهاتف" : "Phone number";
+        if (messageInputLang) messageInputLang.placeholder = lang === "ar" ? "اكتب رسالة..." : "Write a message...";
+        if (searchInputLang) searchInputLang.placeholder = lang === "ar" ? "بحث في المحادثات..." : "Search chats...";
+        if (syncBtnLang) syncBtnLang.textContent = lang === "ar" ? "مزامنة جهات الاتصال" : "Sync contacts";
+        if (topTitleLang && (topTitleLang.textContent === "Local Chat" || topTitleLang.textContent.indexOf("Ø") >= 0 || topTitleLang.textContent === "المحادثات" || topTitleLang.textContent === "Chats")) topTitleLang.textContent = lang === "ar" ? "المحادثات" : "Chats";
+        if (topSubtitleLang && username) topSubtitleLang.textContent = lang === "ar" ? (username + " متصل") : (username + " online");
+
         const btn = document.getElementById("languageToggleBtn");
         if (btn) btn.textContent = "ðŸŒ Language";
 
