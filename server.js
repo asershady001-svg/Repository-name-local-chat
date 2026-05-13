@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
@@ -25,12 +25,12 @@ const contactsFile = path.join(__dirname, "contacts.json");
 const APP_VERSION = "login-fix-private-chat-2026-05-12-2128";
 
 let allowedUsers = {
-  "Ø£Ø³Ø±": "",
-  "Ø§Ø³Ø±": "",
-  "Ù…Ø­Ù…Ø¯": "1234",
-  "Ø´Ø§Ø¯ÙŠ": "1234",
-  "Ø¬ÙˆØ¯ÙŠ": "1234",
-  "Ø¹Ù…Ø±": "1234",
+  "Ã˜Â£Ã˜Â³Ã˜Â±": "",
+  "Ã˜Â§Ã˜Â³Ã˜Â±": "",
+  "Ã™â€¦Ã˜Â­Ã™â€¦Ã˜Â¯": "1234",
+  "Ã˜Â´Ã˜Â§Ã˜Â¯Ã™Å ": "1234",
+  "Ã˜Â¬Ã™Ë†Ã˜Â¯Ã™Å ": "1234",
+  "Ã˜Â¹Ã™â€¦Ã˜Â±": "1234",
   "admin": "admin123"
 };
 
@@ -53,8 +53,8 @@ function loadUsers() {
       const data = fs.readFileSync(usersFile, "utf8");
       const savedUsers = JSON.parse(data);
       allowedUsers = { ...allowedUsers, ...savedUsers };
-      allowedUsers["Ø£Ø³Ø±"] = allowedUsers["Ø£Ø³Ø±"] || "";
-      allowedUsers["Ø§Ø³Ø±"] = allowedUsers["Ø§Ø³Ø±"] || "";
+      allowedUsers["Ã˜Â£Ã˜Â³Ã˜Â±"] = allowedUsers["Ã˜Â£Ã˜Â³Ã˜Â±"] || "";
+      allowedUsers["Ã˜Â§Ã˜Â³Ã˜Â±"] = allowedUsers["Ã˜Â§Ã˜Â³Ã˜Â±"] || "";
       saveUsers();
       console.log("Users loaded from users.json");
     } else {
@@ -162,7 +162,7 @@ loadMessages();
 
 app.get("/api/users", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "ØºÙŠØ± Ù…ØµØ±Ø­" });
+    return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
   }
 
   const users = Object.keys(allowedUsers).map(name => {
@@ -188,7 +188,7 @@ app.get("/api/users", (req, res) => {
 
 app.post("/api/users", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "ØºÙŠØ± Ù…ØµØ±Ø­" });
+    return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
   }
 
   const name = String(req.body.name || "").trim();
@@ -196,15 +196,15 @@ app.post("/api/users", (req, res) => {
   const password = String(req.body.password || "").trim();
 
   if (!name) {
-    return res.json({ ok: false, message: "Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…" });
+    return res.json({ ok: false, message: "Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦" });
   }
 
   if (!phone) {
-    return res.json({ ok: false, message: "Ø§ÙƒØªØ¨ Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ" });
+    return res.json({ ok: false, message: "Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â±Ã™â€šÃ™â€¦ Ã˜Â§Ã™â€žÃ™â€¡Ã˜Â§Ã˜ÂªÃ™Â" });
   }
 
-  if (name !== "Ø£Ø³Ø±" && name !== "Ø§Ø³Ø±" && password.length < 3) {
-    return res.json({ ok: false, message: "ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ù‚ØµÙŠØ±Ø© Ø¬Ø¯Ù‹Ø§" });
+  if (name !== "Ã˜Â£Ã˜Â³Ã˜Â±" && name !== "Ã˜Â§Ã˜Â³Ã˜Â±" && password.length < 3) {
+    return res.json({ ok: false, message: "Ã™Æ’Ã™â€žÃ™â€¦Ã˜Â© Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â±Ã™Ë†Ã˜Â± Ã™â€šÃ˜ÂµÃ™Å Ã˜Â±Ã˜Â© Ã˜Â¬Ã˜Â¯Ã™â€¹Ã˜Â§" });
   }
 
   allowedUsers[name] = {
@@ -213,28 +213,28 @@ app.post("/api/users", (req, res) => {
   };
   saveUsers();
 
-  res.json({ ok: true, message: "ØªÙ… Ø­ÙØ¸ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…" });
+  res.json({ ok: true, message: "Ã˜ÂªÃ™â€¦ Ã˜Â­Ã™ÂÃ˜Â¸ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦" });
 });
 
 app.delete("/api/users/:name", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "ØºÙŠØ± Ù…ØµØ±Ø­" });
+    return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
   }
 
   const name = decodeURIComponent(req.params.name);
 
   if (name === "admin") {
-    return res.json({ ok: false, message: "Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø­Ø°Ù admin" });
+    return res.json({ ok: false, message: "Ã™â€žÃ˜Â§ Ã™Å Ã™â€¦Ã™Æ’Ã™â€  Ã˜Â­Ã˜Â°Ã™Â admin" });
   }
 
-  if (name === "Ø£Ø³Ø±" || name === "Ø§Ø³Ø±") {
-    return res.json({ ok: false, message: "Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø­Ø°Ù Ø£Ø³Ø±" });
+  if (name === "Ã˜Â£Ã˜Â³Ã˜Â±" || name === "Ã˜Â§Ã˜Â³Ã˜Â±") {
+    return res.json({ ok: false, message: "Ã™â€žÃ˜Â§ Ã™Å Ã™â€¦Ã™Æ’Ã™â€  Ã˜Â­Ã˜Â°Ã™Â Ã˜Â£Ã˜Â³Ã˜Â±" });
   }
 
   delete allowedUsers[name];
   saveUsers();
 
-  res.json({ ok: true, message: "ØªÙ… Ø­Ø°Ù Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…" });
+  res.json({ ok: true, message: "Ã˜ÂªÃ™â€¦ Ã˜Â­Ã˜Â°Ã™Â Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦" });
 });
 
 app.get("/api/chats-public", (req, res) => {
@@ -249,13 +249,13 @@ app.get("/api/message-chats", (req, res) => {
     .filter(room => room.replace("private:", "").split("__").includes(username))
     .map(room => {
       const names = room.replace("private:", "").split("__");
-      const otherName = names.find(n => n !== username) || "محادثة";
+      const otherName = names.find(n => n !== username) || "Ù…Ø­Ø§Ø¯Ø«Ø©";
       const msgs = messageHistory[room] || [];
       const last = msgs.length ? msgs[msgs.length - 1] : null;
       return {
         id: room,
         name: otherName,
-        avatar: "👤",
+        avatar: "ðŸ‘¤",
         registered: true,
         lastText: last ? (last.text || "") : "",
         lastDate: last ? (last.date || "") : ""
@@ -266,7 +266,7 @@ app.get("/api/message-chats", (req, res) => {
 
 app.get("/api/contacts", (req, res) => {
   const username = String(req.query.username || "").trim();
-  if (!username) return res.json({ ok: false, message: "Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ù…Ø·Ù„ÙˆØ¨" });
+  if (!username) return res.json({ ok: false, message: "Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã™â€¦Ã˜Â·Ã™â€žÃ™Ë†Ã˜Â¨" });
   res.json({ ok: true, contacts: contacts[username] || [] });
 });
 
@@ -274,13 +274,13 @@ app.post("/api/contacts", (req, res) => {
   const username = String(req.body.username || "").trim();
   const name = String(req.body.name || "").trim();
   const phone = String(req.body.phone || "").trim();
-  if (!username || !name || !phone) return res.json({ ok: false, message: "Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… ÙˆØ§Ø³Ù… Ø§Ù„ÙƒÙˆÙ†ØªØ§ÙƒØª ÙˆØ±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ" });
+  if (!username || !name || !phone) return res.json({ ok: false, message: "Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã™Ë†Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™Æ’Ã™Ë†Ã™â€ Ã˜ÂªÃ˜Â§Ã™Æ’Ã˜Âª Ã™Ë†Ã˜Â±Ã™â€šÃ™â€¦ Ã˜Â§Ã™â€žÃ™â€¡Ã˜Â§Ã˜ÂªÃ™Â" });
   const foundUser = Object.entries(allowedUsers).find(([savedName, savedValue]) => {
     if (savedValue && typeof savedValue === "object") return String(savedValue.phone || "").trim() === phone;
     return false;
   });
   if (!contacts[username]) contacts[username] = [];
-  if (contacts[username].some(c => String(c.phone || "").trim() === phone)) return res.json({ ok: false, message: "Ù‡Ø°Ø§ Ø§Ù„ÙƒÙˆÙ†ØªØ§ÙƒØª Ù…ÙˆØ¬ÙˆØ¯ Ø¨Ø§Ù„ÙØ¹Ù„" });
+  if (contacts[username].some(c => String(c.phone || "").trim() === phone)) return res.json({ ok: false, message: "Ã™â€¡Ã˜Â°Ã˜Â§ Ã˜Â§Ã™â€žÃ™Æ’Ã™Ë†Ã™â€ Ã˜ÂªÃ˜Â§Ã™Æ’Ã˜Âª Ã™â€¦Ã™Ë†Ã˜Â¬Ã™Ë†Ã˜Â¯ Ã˜Â¨Ã˜Â§Ã™â€žÃ™ÂÃ˜Â¹Ã™â€ž" });
   const contact = {
     name: foundUser ? foundUser[0] : name,
     displayName: name,
@@ -294,7 +294,7 @@ app.post("/api/contacts", (req, res) => {
 
 app.get("/api/chats", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "ØºÙŠØ± Ù…ØµØ±Ø­" });
+    return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
   }
 
   res.json({ ok: true, chats });
@@ -302,14 +302,14 @@ app.get("/api/chats", (req, res) => {
 
 app.post("/api/chats", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "ØºÙŠØ± Ù…ØµØ±Ø­" });
+    return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
   }
 
   const name = String(req.body.name || "").trim();
-  const avatar = String(req.body.avatar || "").trim() || "Ø¯";
+  const avatar = String(req.body.avatar || "").trim() || "Ã˜Â¯";
 
   if (!name) {
-    return res.json({ ok: false, message: "Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ø§Ù„Ø¯Ø±Ø¯Ø´Ø©" });
+    return res.json({ ok: false, message: "Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ˜Â¯Ã˜Â±Ã˜Â¯Ã˜Â´Ã˜Â©" });
   }
 
   const id = "room_" + Date.now();
@@ -326,12 +326,12 @@ app.post("/api/chats", (req, res) => {
   saveChats();
   saveMessages();
 
-  res.json({ ok: true, message: "ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø¯Ø±Ø¯Ø´Ø©", chat });
+  res.json({ ok: true, message: "Ã˜ÂªÃ™â€¦Ã˜Âª Ã˜Â¥Ã˜Â¶Ã˜Â§Ã™ÂÃ˜Â© Ã˜Â§Ã™â€žÃ˜Â¯Ã˜Â±Ã˜Â¯Ã˜Â´Ã˜Â©", chat });
 });
 
 app.delete("/api/chats/:id", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "ØºÙŠØ± Ù…ØµØ±Ø­" });
+    return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
   }
 
   const id = decodeURIComponent(req.params.id);
@@ -344,7 +344,7 @@ app.delete("/api/chats/:id", (req, res) => {
   saveChats();
   saveMessages();
 
-  res.json({ ok: true, message: "ØªÙ… Ø­Ø°Ù Ø§Ù„Ø¯Ø±Ø¯Ø´Ø©" });
+  res.json({ ok: true, message: "Ã˜ÂªÃ™â€¦ Ã˜Â­Ã˜Â°Ã™Â Ã˜Â§Ã™â€žÃ˜Â¯Ã˜Â±Ã˜Â¯Ã˜Â´Ã˜Â©" });
 });
 
 const onlineUsers = {};
@@ -400,12 +400,12 @@ io.on("connection", (socket) => {
     const phone = String(data.phone || "").trim();
 
     if (!name) {
-      callback({ ok: false, message: "Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…" });
+      callback({ ok: false, message: "Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦" });
       return;
     }
 
     if (!phone) {
-      callback({ ok: false, message: "Ø§ÙƒØªØ¨ Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ" });
+      callback({ ok: false, message: "Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â±Ã™â€šÃ™â€¦ Ã˜Â§Ã™â€žÃ™â€¡Ã˜Â§Ã˜ÂªÃ™Â" });
       return;
     }
 
@@ -435,7 +435,7 @@ io.on("connection", (socket) => {
 
     if (Object.prototype.hasOwnProperty.call(allowedUsers, name)) {
       const oldUserValue = allowedUsers[name];
-      if (!oldUserValue || typeof oldUserValue !== "object") {
+      if (!oldUserValue || typeof oldUserValue !== "object" || !String(oldUserValue.phone || "").trim()) {
         allowedUsers[name] = { phone, password: "" };
         saveUsers();
         socket.isLoggedIn = true;
@@ -452,7 +452,7 @@ io.on("connection", (socket) => {
     }
 
     if (Object.prototype.hasOwnProperty.call(allowedUsers, name)) {
-      callback({ ok: false, message: "Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ù…ÙˆØ¬ÙˆØ¯ Ø¨Ø§Ù„ÙØ¹Ù„ Ù…Ø¹ Ø±Ù‚Ù… Ø¢Ø®Ø±. Ø§Ø®ØªØ± Ø§Ø³Ù…Ø§ Ø¢Ø®Ø± Ø£Ùˆ Ø§Ø¯Ø®Ù„ Ø¨Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ Ø§Ù„Ù‚Ø¯ÙŠÙ…." });
+      callback({ ok: false, message: "Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã™â€¦Ã™Ë†Ã˜Â¬Ã™Ë†Ã˜Â¯ Ã˜Â¨Ã˜Â§Ã™â€žÃ™ÂÃ˜Â¹Ã™â€ž Ã™â€¦Ã˜Â¹ Ã˜Â±Ã™â€šÃ™â€¦ Ã˜Â¢Ã˜Â®Ã˜Â±. Ã˜Â§Ã˜Â®Ã˜ÂªÃ˜Â± Ã˜Â§Ã˜Â³Ã™â€¦Ã˜Â§ Ã˜Â¢Ã˜Â®Ã˜Â± Ã˜Â£Ã™Ë† Ã˜Â§Ã˜Â¯Ã˜Â®Ã™â€ž Ã˜Â¨Ã˜Â±Ã™â€šÃ™â€¦ Ã˜Â§Ã™â€žÃ™â€¡Ã˜Â§Ã˜ÂªÃ™Â Ã˜Â§Ã™â€žÃ™â€šÃ˜Â¯Ã™Å Ã™â€¦." });
       console.log("Register rejected duplicate name:", name);
       return;
     }
@@ -484,7 +484,7 @@ io.on("connection", (socket) => {
 
   socket.on("join room", (data) => {
     if (!socket.isLoggedIn) {
-      socket.emit("login required", { message: "ÙŠØ¬Ø¨ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø£ÙˆÙ„Ù‹Ø§" });
+      socket.emit("login required", { message: "Ã™Å Ã˜Â¬Ã˜Â¨ Ã˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ž Ã˜Â§Ã™â€žÃ˜Â¯Ã˜Â®Ã™Ë†Ã™â€ž Ã˜Â£Ã™Ë†Ã™â€žÃ™â€¹Ã˜Â§" });
       return;
     }
 
@@ -508,7 +508,7 @@ io.on("connection", (socket) => {
     });
 
     socket.to(room).emit("system message", {
-      text: socket.username + " Ø¯Ø®Ù„ Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø©"
+      text: socket.username + " Ã˜Â¯Ã˜Â®Ã™â€ž Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â­Ã˜Â§Ã˜Â¯Ã˜Â«Ã˜Â©"
     });
   });
 
@@ -577,7 +577,7 @@ io.on("connection", (socket) => {
   socket.on("call-offer", (data) => {
     if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
     if (!socket.currentRoom.startsWith("private:")) {
-      socket.emit("call-reject", { from: "Local Chat", reason: "Ø§Ù„Ù…ÙƒØ§Ù„Ù…Ø§Øª Ù…ØªØ§Ø­Ø© ÙÙŠ Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø§Øª Ø§Ù„Ø®Ø§ØµØ© ÙÙ‚Ø·" });
+      socket.emit("call-reject", { from: "Local Chat", reason: "Ã˜Â§Ã™â€žÃ™â€¦Ã™Æ’Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â§Ã˜Âª Ã™â€¦Ã˜ÂªÃ˜Â§Ã˜Â­Ã˜Â© Ã™ÂÃ™Å  Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â­Ã˜Â§Ã˜Â¯Ã˜Â«Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€žÃ˜Â®Ã˜Â§Ã˜ÂµÃ˜Â© Ã™ÂÃ™â€šÃ˜Â·" });
       return;
     }
 
@@ -639,6 +639,7 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 3000; server.listen(PORT, "0.0.0.0", () => {
   console.log("Local Chat is running on http://localhost:3000");
 });
+
 
 
 
