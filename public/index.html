@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -981,6 +981,7 @@
     <div class="chatList" id="chatList">
       <div class="searchBox">
         <input placeholder="بحث في المحادثات..." oninput="filterChats(this.value)" />
+        <button onclick="syncPhoneContacts()" style="width:100%;margin-top:10px;padding:12px;border:0;border-radius:18px;background:#00a884;color:white;font-weight:bold;font-size:15px;cursor:pointer;">مزامنة جهات الاتصال</button>
       </div>
 
       <div id="chatItemsBox"></div>
@@ -1041,13 +1042,73 @@
     }
 
     async function loadChats() {
-      const res = await fetch("/api/chats-public");
+      if (!username) return;
+      const res = await fetch("/api/contacts?username=" + encodeURIComponent(username));
       const data = await res.json();
 
       if (!data.ok) return;
 
-      chatsList = data.chats || [];
+      const list = data.contacts || [];
+      chatsList = list.map(function(contact) {
+        const contactName = contact.name || contact.displayName || "Contact";
+        const roomId = contact.registered ? makePrivateRoomId(username, contactName) : ("notregistered:" + (contact.phone || ""));
+        return {
+          id: roomId,
+          name: contact.registered ? contactName : ((contact.displayName || contactName) + " - غير مسجل"),
+          avatar: contact.registered ? "👤" : "➕",
+          phone: contact.phone || "",
+          registered: !!contact.registered
+        };
+      });
       refreshChatList();
+    }
+
+    async function addContactToServer(contactName, contactPhone) {
+      const res = await fetch("/api/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username, name: contactName, phone: contactPhone })
+      });
+      return await res.json();
+    }
+
+    async function syncPhoneContacts() {
+      if (!username) {
+        alert("سجل الدخول أولا");
+        return;
+      }
+
+      try {
+        if (navigator.contacts && navigator.contacts.select) {
+          const selected = await navigator.contacts.select(["name", "tel"], { multiple: true });
+          if (!selected || selected.length === 0) return;
+
+          for (const item of selected) {
+            const contactName = item.name && item.name[0] ? item.name[0] : "Contact";
+            const contactPhone = item.tel && item.tel[0] ? item.tel[0] : "";
+            if (contactPhone) {
+              await addContactToServer(contactName, contactPhone);
+            }
+          }
+          await loadChats();
+          alert("تمت مزامنة جهات الاتصال");
+          return;
+        }
+      } catch (error) {
+        console.log(error);
+      }
+
+      const contactName = prompt("اكتب اسم الكونتاكت");
+      if (!contactName) return;
+      const contactPhone = prompt("اكتب رقم الهاتف");
+      if (!contactPhone) return;
+      const result = await addContactToServer(contactName.trim(), contactPhone.trim());
+      if (!result.ok) {
+        alert(result.message || "لم يتم إضافة الكونتاكت");
+        return;
+      }
+      await loadChats();
+      alert("تمت إضافة الكونتاكت");
     }
 
     function renderChats(list) {
