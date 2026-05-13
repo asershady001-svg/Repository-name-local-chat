@@ -3,6 +3,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
 const fs = require("fs");
+const { Pool } = require("pg");
 
 const app = express();
 const server = http.createServer(app);
@@ -38,6 +39,46 @@ let chats = [];
 
 let messageHistory = {};
 let contacts = {};
+
+const DATABASE_URL = process.env.DATABASE_URL || "";
+const db = DATABASE_URL ? new Pool({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } }) : null;
+
+async function ensureContactsTable() {
+  if (!db) return false;
+  await db.query("CREATE TABLE IF NOT EXISTS contacts (id SERIAL PRIMARY KEY, username TEXT NOT NULL, name TEXT NOT NULL, display_name TEXT, phone TEXT NOT NULL, registered BOOLEAN DEFAULT FALSE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE(username, phone))");
+  return true;
+}
+
+async function loadContactsFromDb() {
+  if (!db) return false;
+  try {
+    await ensureContactsTable();
+    const result = await db.query("SELECT username, name, display_name, phone, registered FROM contacts ORDER BY id ASC");
+    contacts = {};
+    result.rows.forEach(row => {
+      if (!contacts[row.username]) contacts[row.username] = [];
+      contacts[row.username].push({ name: row.name, displayName: row.display_name || row.name, phone: row.phone, registered: !!row.registered });
+    });
+    console.log("Contacts loaded from PostgreSQL");
+    return true;
+  } catch (error) {
+    console.log("PostgreSQL contacts load error:", error.message);
+    return false;
+  }
+}
+
+async function saveContactToDb(username, contact) {
+  if (!db) return false;
+  try {
+    await ensureContactsTable();
+    await db.query("INSERT INTO contacts (username, name, display_name, phone, registered) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (username, phone) DO UPDATE SET name = EXCLUDED.name, display_name = EXCLUDED.display_name, registered = EXCLUDED.registered", [username, contact.name || "", contact.displayName || contact.name || "", contact.phone || "", !!contact.registered]);
+    return true;
+  } catch (error) {
+    console.log("PostgreSQL contact save error:", error.message);
+    return false;
+  }
+}
+
 
 function saveUsers() {
   try {
@@ -157,7 +198,7 @@ function isAdminRequest(req) {
 
 loadUsers();
 loadChats();
-loadContacts();
+loadContactsFromDb().then(ok => { if (!ok) loadContacts(); });
 loadMessages();
 
 app.get("/api/users", (req, res) => {
@@ -270,7 +311,7 @@ app.get("/api/contacts", (req, res) => {
   res.json({ ok: true, contacts: contacts[username] || [] });
 });
 
-app.post("/api/contacts", (req, res) => {
+app.post("/api/contacts", async (req, res) => {
   const username = String(req.body.username || "").trim();
   const name = String(req.body.name || "").trim();
   const phone = String(req.body.phone || "").trim();
@@ -288,7 +329,7 @@ app.post("/api/contacts", (req, res) => {
     registered: !!foundUser
   };
   contacts[username].push(contact);
-  saveContacts();
+  if (db) { const saved = await saveContactToDb(username, contact); if (!saved) return res.json({ ok: false, message: "DB save error" }); } else { saveContacts(); }
   res.json({ ok: true, contact });
 });
 
