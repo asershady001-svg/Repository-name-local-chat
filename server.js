@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
@@ -315,24 +315,40 @@ app.post("/api/contacts", async (req, res) => {
   const username = String(req.body.username || "").trim();
   const name = String(req.body.name || "").trim();
   const phone = String(req.body.phone || "").trim();
-  if (!username || !name || !phone) return res.json({ ok: false, message: "Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã™Ë†Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™Æ’Ã™Ë†Ã™â€ Ã˜ÂªÃ˜Â§Ã™Æ’Ã˜Âª Ã™Ë†Ã˜Â±Ã™â€šÃ™â€¦ Ã˜Â§Ã™â€žÃ™â€¡Ã˜Â§Ã˜ÂªÃ™Â" });
-  const foundUser = Object.entries(allowedUsers).find(([savedName, savedValue]) => {
-    if (savedValue && typeof savedValue === "object") return String(savedValue.phone || "").trim() === phone;
-    return false;
+
+  if (!username) return res.json({ ok: false, message: "username required" });
+  if (!phone) return res.json({ ok: false, message: "phone required" });
+
+  const normalizedPhone = phone.replace(/\s+/g, "");
+
+  const foundUser = Object.entries(allowedUsers).find(function(entry) {
+    const userData = entry[1] || {};
+    return String(userData.phone || "").replace(/\s+/g, "") === normalizedPhone;
   });
+
   if (!contacts[username]) contacts[username] = [];
-  if (contacts[username].some(c => String(c.phone || "").trim() === phone)) return res.json({ ok: false, message: "Ã™â€¡Ã˜Â°Ã˜Â§ Ã˜Â§Ã™â€žÃ™Æ’Ã™Ë†Ã™â€ Ã˜ÂªÃ˜Â§Ã™Æ’Ã˜Âª Ã™â€¦Ã™Ë†Ã˜Â¬Ã™Ë†Ã˜Â¯ Ã˜Â¨Ã˜Â§Ã™â€žÃ™ÂÃ˜Â¹Ã™â€ž" });
+
+  if (contacts[username].some(c => String(c.phone || "").replace(/\s+/g, "") === normalizedPhone)) {
+    return res.json({ ok: false, message: "Contact already exists" });
+  }
+
   const contact = {
-    name: foundUser ? foundUser[0] : name,
-    displayName: name,
-    phone,
+    name: foundUser ? foundUser[0] : (name || "Contact"),
+    displayName: name || (foundUser ? foundUser[0] : "Contact"),
+    phone: phone,
     registered: !!foundUser
   };
+
   contacts[username].push(contact);
-  if (db) { const saved = await saveContactToDb(username, contact); if (!saved) return res.json({ ok: false, message: "DB save error" }); } else { saveContacts(); }
+
+  saveContacts();
+
+  if (db) {
+    await saveContactToDb(username, contact);
+  }
+
   res.json({ ok: true, contact });
 });
-
 app.get("/api/chats", (req, res) => {
   if (!isAdminRequest(req)) {
     return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
@@ -558,11 +574,11 @@ io.on("connection", (socket) => {
     broadcastOnlineUsers();
     console.log("User disconnected:", socket.id);
   });
-
   socket.on("chat message", (data) => {
     if (!socket.isLoggedIn || !socket.currentRoom) return;
 
     const message = {
+      id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10),
       room: socket.currentRoom,
       name: socket.username,
       type: data.type || "text",
@@ -587,7 +603,6 @@ io.on("connection", (socket) => {
 
     io.to(socket.currentRoom).emit("chat message", message);
   });
-
   socket.on("clear room messages", (data) => {
     if (!socket.isLoggedIn || !socket.currentRoom) return;
 
@@ -604,7 +619,31 @@ io.on("connection", (socket) => {
       room: roomToClear
     });
   });
-  socket.on("typing", () => {
+
+  socket.on("delete selected messages", (data) => {
+    if (!socket.isLoggedIn || !socket.currentRoom) return;
+
+    const room = socket.currentRoom;
+    const ids = Array.isArray(data && data.ids) ? data.ids.map(String) : [];
+
+    if (!ids.length) return;
+
+    if (!messageHistory[room]) {
+      messageHistory[room] = [];
+    }
+
+    messageHistory[room] = messageHistory[room].filter(function(message) {
+      return !ids.includes(String(message.id || ""));
+    });
+
+    saveMessages();
+
+    io.to(room).emit("selected messages deleted", {
+      room,
+      ids
+    });
+  });
+socket.on("typing", () => {
     if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
     socket.to(socket.currentRoom).emit("typing", socket.username);
   });

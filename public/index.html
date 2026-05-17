@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -1003,6 +1003,8 @@
       <div id="typing"></div>
 
       <div class="sendbar">
+        <button class="emojiBtn" onclick="toggleEmojiPanel()">&#128512;</button>
+        <div id="emojiPanel" style="display:none;position:fixed;bottom:75px;left:15px;right:15px;background:white;border:1px solid #ddd;border-radius:14px;padding:10px;z-index:9999;box-shadow:0 4px 18px rgba(0,0,0,.2);direction:ltr;text-align:center"></div>
         <button class="imageBtn" onclick="document.getElementById('imageInput').click()">ðŸ“·</button>
         <input id="imageInput" type="file" accept="image/*" onchange="sendImage(event)" />
         <button class="deleteBtn" title="Ù…Ø³Ø­ Ø±Ø³Ø§Ø¦Ù„ Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø©" onclick="clearCurrentRoomMessages()">ðŸ—‘ï¸</button>
@@ -1084,42 +1086,99 @@
     }
 
     async function syncPhoneContacts() {
+      showAddContactForm();
+    }
+
+    function showAddContactForm() {
+      let box = document.getElementById("addContactBox");
+
+      if (!box) {
+        box = document.createElement("div");
+        box.id = "addContactBox";
+        box.style.position = "fixed";
+        box.style.left = "15px";
+        box.style.right = "15px";
+        box.style.top = "120px";
+        box.style.background = "#ffffff";
+        box.style.border = "1px solid #ddd";
+        box.style.borderRadius = "16px";
+        box.style.padding = "16px";
+        box.style.zIndex = "99999";
+        box.style.boxShadow = "0 6px 25px rgba(0,0,0,.25)";
+        box.style.direction = "rtl";
+
+        box.innerHTML = `
+          <h3 style="margin:0 0 12px 0;color:#111">إضافة كونتاكت</h3>
+
+          <input id="newContactName"
+            placeholder="اسم الكونتاكت"
+            style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:16px">
+
+          <input id="newContactPhone"
+            placeholder="رقم الهاتف"
+            style="width:100%;box-sizing:border-box;margin-bottom:12px;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:16px;direction:ltr;text-align:left">
+
+          <div style="display:flex;gap:8px">
+            <button onclick="saveManualContact()"
+              style="flex:1;padding:12px;border:0;border-radius:10px;background:#22c55e;color:white;font-size:16px">
+              حفظ
+            </button>
+
+            <button onclick="closeAddContactForm()"
+              style="flex:1;padding:12px;border:0;border-radius:10px;background:#e5e7eb;color:#111;font-size:16px">
+              إلغاء
+            </button>
+          </div>
+        `;
+
+        document.body.appendChild(box);
+      }
+
+      box.style.display = "block";
+    }
+
+    function closeAddContactForm() {
+      const box = document.getElementById("addContactBox");
+      if (box) box.style.display = "none";
+    }
+
+    async function saveManualContact() {
       if (!username) {
-        alert("Ø³Ø¬Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø£ÙˆÙ„Ø§");
+        alert("سجل الدخول أولًا");
         return;
       }
 
-      try {
-        if (navigator.contacts && navigator.contacts.select) {
-          const selected = await navigator.contacts.select(["name", "tel"], { multiple: true });
-          if (!selected || selected.length === 0) return;
+      const nameInput = document.getElementById("newContactName");
+      const phoneInput = document.getElementById("newContactPhone");
 
-          for (const item of selected) {
-            const contactName = item.name && item.name[0] ? item.name[0] : "Contact";
-            const contactPhone = item.tel && item.tel[0] ? item.tel[0] : "";
-            if (contactPhone) {
-              await addContactToServer(contactName, contactPhone);
-            }
-          }
-          await loadChats();
-          alert("ØªÙ…Øª Ù…Ø²Ø§Ù…Ù†Ø© Ø¬Ù‡Ø§Øª Ø§Ù„Ø§ØªØµØ§Ù„");
-          return;
-        }
-      } catch (error) {
-        console.log(error);
+      const contactName = nameInput ? nameInput.value.trim() : "";
+      const contactPhone = phoneInput ? phoneInput.value.trim() : "";
+
+      if (!contactName) {
+        alert("اكتب اسم الكونتاكت");
+        return;
       }
 
-      const contactName = prompt("Ø§ÙƒØªØ¨ Ø§Ø³Ù… Ø§Ù„ÙƒÙˆÙ†ØªØ§ÙƒØª");
-      if (!contactName) return;
-      const contactPhone = prompt("Ø§ÙƒØªØ¨ Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ");
-      if (!contactPhone) return;
-      const result = await addContactToServer(contactName.trim(), contactPhone.trim());
+      if (!contactPhone) {
+        alert("اكتب رقم الهاتف");
+        return;
+      }
+
+      const result = await addContactToServer(contactName, contactPhone);
+
       if (!result.ok) {
-        alert(result.message || "Ù„Ù… ÙŠØªÙ… Ø¥Ø¶Ø§ÙØ© Ø§Ù„ÙƒÙˆÙ†ØªØ§ÙƒØª");
+        alert(result.message || "لم يتم حفظ الكونتاكت");
         return;
       }
+
+      closeAddContactForm();
+
+      if (nameInput) nameInput.value = "";
+      if (phoneInput) phoneInput.value = "";
+
       await loadChats();
-      alert("ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„ÙƒÙˆÙ†ØªØ§ÙƒØª");
+
+      alert("تم حفظ الكونتاكت");
     }
 
     function renderChats(list) {
@@ -1248,6 +1307,31 @@
       });
     }
 
+    function toggleEmojiPanel() {
+      const panel = document.getElementById("emojiPanel");
+      if (!panel) return;
+
+      if (!panel.innerHTML) {
+        ["\u{1F600}","\u{1F601}","\u{1F602}","\u{1F923}","\u{1F60A}","\u{1F60D}","\u{1F618}","\u{1F60E}","\u{1F622}","\u{1F62D}","\u{1F621}","\u{1F44D}","\u{1F44E}","\u{1F64F}","\u{1F44F}","\u{2764}\u{FE0F}","\u{1F525}","\u{1F339}","\u{1F389}","\u{2705}","\u{274C}"].forEach(function(e) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.textContent = e;
+          b.style.cssText = "font-size:24px;margin:4px;padding:6px;border:0;background:#f3f4f6;border-radius:8px";
+          b.onclick = function() { insertEmoji(e); };
+          panel.appendChild(b);
+        });
+      }
+
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+    }
+
+    function insertEmoji(e) {
+      const input = document.getElementById("messageInput");
+      if (!input) return;
+      input.value += e;
+      input.focus();
+    }
+
     function sendMessage() {
       const input = document.getElementById("messageInput");
       const text = input.value.trim();
@@ -1299,9 +1383,71 @@
     }
 
 
+    
+    let pendingVoiceAudio = "";
+    let pendingVoiceBlob = null;
+
+    function showVoicePreview(audioData) {
+      pendingVoiceAudio = audioData;
+
+      let box = document.getElementById("voicePreviewBox");
+
+      if (!box) {
+        box = document.createElement("div");
+        box.id = "voicePreviewBox";
+        box.style.position = "fixed";
+        box.style.left = "12px";
+        box.style.right = "12px";
+        box.style.bottom = "82px";
+        box.style.background = "#ffffff";
+        box.style.border = "1px solid #ddd";
+        box.style.borderRadius = "18px";
+        box.style.padding = "12px";
+        box.style.zIndex = "99999";
+        box.style.boxShadow = "0 6px 25px rgba(0,0,0,.25)";
+        box.style.direction = "ltr";
+        document.body.appendChild(box);
+      }
+
+      box.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px">
+          <audio controls src="${audioData}" style="flex:1;height:40px"></audio>
+          <button onclick="sendPendingVoice()" style="border:0;border-radius:50%;background:#22c55e;color:white;width:46px;height:46px;font-size:20px">➤</button>
+          <button onclick="deletePendingVoice()" style="border:0;border-radius:50%;background:#ef4444;color:white;width:46px;height:46px;font-size:20px">🗑</button>
+        </div>
+      `;
+
+      box.style.display = "block";
+    }
+
+    function deletePendingVoice() {
+      pendingVoiceAudio = "";
+      pendingVoiceBlob = null;
+
+      const box = document.getElementById("voicePreviewBox");
+      if (box) box.style.display = "none";
+
+      const btn = document.getElementById("voiceBtn");
+      if (btn) btn.innerText = "🎤";
+    }
+
+    function sendPendingVoice() {
+      if (!pendingVoiceAudio || !currentRoom) return;
+
+      socket.emit("chat message", {
+        type: "audio",
+        name: username,
+        text: "Voice message",
+        audio: pendingVoiceAudio,
+        time: nowTime()
+      });
+
+      deletePendingVoice();
+    }
+
     async function toggleRecording() {
       if (!currentRoom) {
-        alert("Ø§Ø¯Ø®Ù„ Ù…Ø­Ø§Ø¯Ø«Ø© Ø£ÙˆÙ„Ù‹Ø§");
+        alert("Open a chat first");
         return;
       }
 
@@ -1320,22 +1466,18 @@
 
           mediaRecorder.onstop = function() {
             const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+            pendingVoiceBlob = audioBlob;
 
             if (audioBlob.size > 3 * 1024 * 1024) {
-              alert("Ø§Ù„ØªØ³Ø¬ÙŠÙ„ Ø·ÙˆÙŠÙ„ Ø¬Ø¯Ù‹Ø§. Ø­Ø§ÙˆÙ„ ØªØ³Ø¬ÙŠÙ„ Ù…Ø¯Ø© Ø£Ù‚ØµØ±.");
+              alert("Voice recording is too long. Try a shorter recording.");
+              stream.getTracks().forEach(track => track.stop());
               return;
             }
 
             const reader = new FileReader();
 
             reader.onload = function(e) {
-              socket.emit("chat message", {
-                type: "audio",
-                name: username,
-                text: "Ø±Ø³Ø§Ù„Ø© ØµÙˆØªÙŠØ©",
-                audio: e.target.result,
-                time: nowTime()
-              });
+              showVoicePreview(e.target.result);
             };
 
             reader.readAsDataURL(audioBlob);
@@ -1347,11 +1489,10 @@
           isRecording = true;
 
           const btn = document.getElementById("voiceBtn");
-          btn.innerText = "â– ";
-          btn.classList.add("recording");
+          if (btn) btn.innerText = "⏹";
 
         } catch (error) {
-          alert("Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø³Ù…Ø§Ø­ Ø¨Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ù…ÙŠÙƒØ±ÙˆÙÙˆÙ†");
+          alert("Microphone permission was not allowed");
         }
       } else {
         if (mediaRecorder && mediaRecorder.state !== "inactive") {
@@ -1361,24 +1502,10 @@
         isRecording = false;
 
         const btn = document.getElementById("voiceBtn");
-        btn.innerText = "ðŸŽ¤";
-        btn.classList.remove("recording");
+        if (btn) btn.innerText = "🎤";
       }
     }
 
-    let callPeerConnection = null;
-    let localCallStream = null;
-    let isInCall = false;
-
-    let callRtcConfig = {
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:stun1.l.google.com:19302" },
-        { urls: "stun:stun2.l.google.com:19302" },
-        { urls: "stun:stun3.l.google.com:19302" },
-        { urls: "stun:stun4.l.google.com:19302" }
-      ]
-    };
 
     async function loadIceConfig() {
       try {
@@ -2081,7 +2208,7 @@
         if (phoneInputLang) phoneInputLang.placeholder = lang === "ar" ? "رقم الهاتف" : "Phone number";
         if (messageInputLang) messageInputLang.placeholder = lang === "ar" ? "اكتب رسالة..." : "Write a message...";
         if (searchInputLang) searchInputLang.placeholder = lang === "ar" ? "بحث في المحادثات..." : "Search chats...";
-        if (syncBtnLang) syncBtnLang.textContent = lang === "ar" ? "مزامنة جهات الاتصال" : "Sync contacts";
+        if (syncBtnLang) syncBtnLang.textContent = lang === "ar" ? "إضافة كونتاكت" : "Add Contact";
         if (topTitleLang && (topTitleLang.textContent === "Local Chat" || topTitleLang.textContent.indexOf("Ø") >= 0 || topTitleLang.textContent === "المحادثات" || topTitleLang.textContent === "Chats")) topTitleLang.textContent = lang === "ar" ? "المحادثات" : "Chats";
         if (topSubtitleLang && username) topSubtitleLang.textContent = lang === "ar" ? (username + " متصل") : (username + " online");
 
@@ -2179,7 +2306,360 @@
       if (box) box.classList.remove("open");
     }
   </script>
-</body>
+
+<script id="LANGUAGE_CLEAN_PATCH_V1">
+(function () {
+  function cleanLocalChatText() {
+    const messageInput = document.getElementById("messageInput");
+    if (messageInput) messageInput.placeholder = "Write a message...";
+
+    const callStatus = document.getElementById("callStatus");
+    if (callStatus && callStatus.textContent.includes("Ø")) {
+      callStatus.textContent = "Ready to call";
+    }
+
+    const langBtn = document.getElementById("languageToggleBtn");
+    if (langBtn) langBtn.textContent = "🌐 Language";
+
+    document.querySelectorAll("button").forEach(function (btn) {
+      const onclick = btn.getAttribute("onclick") || "";
+
+      if (onclick.includes("startVoiceCall")) btn.textContent = "📞 Voice Call";
+      if (onclick.includes("startVideoCall")) btn.textContent = "📹 Video Call";
+      if (onclick.includes("endCall")) btn.textContent = "End";
+      if (onclick.includes("syncPhoneContacts")) btn.textContent = "Add Contact";
+      if (onclick.includes("document.getElementById('imageInput').click")) btn.textContent = "📷";
+      if (onclick.includes("toggleRecording")) btn.textContent = "🎤";
+      if (onclick.includes("sendMessage")) btn.textContent = "➤";
+      if (onclick.includes("clearCurrentRoomMessages")) btn.textContent = "🗑";
+      if (onclick.includes("toggleEmojiPanel")) btn.textContent = "😀";
+    });
+
+    const emojiBtn = document.querySelector(".emojiBtn");
+    if (emojiBtn) {
+      emojiBtn.style.minWidth = "52px";
+      emojiBtn.style.height = "52px";
+      emojiBtn.style.borderRadius = "50%";
+      emojiBtn.style.fontSize = "24px";
+    }
+
+    const sendbar = document.querySelector(".sendbar");
+    if (sendbar) {
+      sendbar.style.gap = "6px";
+      sendbar.style.alignItems = "center";
+    }
+  }
+
+  cleanLocalChatText();
+  window.addEventListener("load", cleanLocalChatText);
+  setInterval(cleanLocalChatText, 1000);
+})();
+</script>
+
+
+<script id="DELETE_SELECTED_PATCH_V1">
+(function () {
+  if (window.DELETE_SELECTED_PATCH_V1) return;
+  window.DELETE_SELECTED_PATCH_V1 = true;
+
+  function ensureMessageIds() {
+    if (!currentRoom || !messagesByRoom[currentRoom]) return;
+
+    messagesByRoom[currentRoom].forEach(function(message, index) {
+      if (!message.id) {
+        message.id = Date.now().toString(36) + "-" + index + "-" + Math.random().toString(36).slice(2, 8);
+      }
+    });
+  }
+
+  function ensureDeleteSelectedButton() {
+    const bar = document.querySelector(".sendbar");
+    const input = document.getElementById("messageInput");
+
+    if (!bar || !input || document.getElementById("deleteSelectedMessagesBtn")) return;
+
+    const btn = document.createElement("button");
+    btn.id = "deleteSelectedMessagesBtn";
+    btn.type = "button";
+    btn.textContent = "🗑✓";
+    btn.title = "Delete selected messages";
+    btn.onclick = window.deleteSelectedMessages;
+    btn.style.minWidth = "44px";
+
+    bar.insertBefore(btn, input);
+  }
+
+  function ensureMessageCheckboxes() {
+    if (!currentRoom || !messagesByRoom[currentRoom]) return;
+
+    ensureMessageIds();
+
+    const rows = document.querySelectorAll("#messages .row");
+    const list = messagesByRoom[currentRoom];
+
+    rows.forEach(function(row, index) {
+      const message = list[index];
+      if (!message) return;
+
+      row.dataset.messageId = message.id;
+
+      if (row.querySelector(".messageSelect")) return;
+
+      const label = document.createElement("label");
+      label.style.display = "block";
+      label.style.fontSize = "12px";
+      label.style.opacity = "0.8";
+      label.style.marginBottom = "4px";
+      label.style.cursor = "pointer";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = "messageSelect";
+      checkbox.value = message.id;
+      checkbox.style.marginRight = "5px";
+
+      const span = document.createElement("span");
+      span.textContent = "Select";
+
+      label.appendChild(checkbox);
+      label.appendChild(span);
+
+      const bubble = row.querySelector(".bubble") || row;
+      bubble.insertBefore(label, bubble.firstChild);
+    });
+  }
+
+  window.deleteSelectedMessages = function () {
+    if (!currentRoom) return;
+
+    const checked = Array.from(document.querySelectorAll(".messageSelect:checked"));
+    const ids = checked.map(function(box) { return box.value; }).filter(Boolean);
+
+    if (!ids.length) {
+      alert("Select one or more messages first");
+      return;
+    }
+
+    const ok = confirm("Delete selected messages only?");
+    if (!ok) return;
+
+    socket.emit("delete selected messages", {
+      room: currentRoom,
+      ids: ids
+    });
+  };
+
+  function installSocketDeleteListener() {
+    if (typeof socket === "undefined" || !socket || socket.__deleteSelectedPatch) return;
+
+    socket.__deleteSelectedPatch = true;
+
+    socket.on("selected messages deleted", function(data) {
+      if (!data || !data.room || !Array.isArray(data.ids)) return;
+
+      if (!messagesByRoom[data.room]) {
+        messagesByRoom[data.room] = [];
+      }
+
+      messagesByRoom[data.room] = messagesByRoom[data.room].filter(function(message) {
+        return !data.ids.includes(String(message.id || ""));
+      });
+
+      if (data.room === currentRoom) {
+        renderRoomMessages(currentRoom);
+        setTimeout(ensureMessageCheckboxes, 100);
+      }
+    });
+  }
+
+  ensureDeleteSelectedButton();
+  installSocketDeleteListener();
+
+  setInterval(ensureDeleteSelectedButton, 1000);
+  setInterval(ensureMessageCheckboxes, 1000);
+  setInterval(installSocketDeleteListener, 1000);
+})();
+</script>
+
+
+<style id="VOICE_STYLE_PATCH_CSS_V1">
+.voiceUiBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 260px;
+  max-width: 330px;
+  padding: 10px 12px;
+  border-radius: 18px;
+  background: #d9ffd5;
+  color: #111;
+}
+
+.row.me .voiceUiBox {
+  background: #d9ffd5;
+}
+
+.row.other .voiceUiBox {
+  background: #ffffff;
+}
+
+.voicePlayBtn {
+  border: 0;
+  background: transparent;
+  color: #111;
+  font-size: 22px;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+}
+
+.voiceWave {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.voiceBar {
+  width: 3px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.22);
+}
+
+.voiceBar.active {
+  background: #38bdf8;
+}
+
+.voiceTime {
+  font-size: 13px;
+  color: #475569;
+  min-width: 34px;
+  text-align: center;
+}
+
+.voiceSpeedBtn {
+  border: 0;
+  background: rgba(0,0,0,0.08);
+  color: #111;
+  border-radius: 14px;
+  padding: 4px 7px;
+  font-size: 12px;
+  cursor: pointer;
+}
+</style>
+
+<script id="VOICE_STYLE_PATCH_JS_V1">
+(function () {
+  if (window.VOICE_STYLE_PATCH_V1) return;
+  window.VOICE_STYLE_PATCH_V1 = true;
+
+  function formatVoiceTime(seconds) {
+    if (!isFinite(seconds) || seconds < 0) seconds = 0;
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return m + ":" + String(s).padStart(2, "0");
+  }
+
+  function buildBars() {
+    const heights = [10,18,24,14,28,20,12,26,16,30,22,13,25,19,12,27,17,23,11,21,29,18,14,26,20,12,24,16];
+    return heights.map(function(h) {
+      return '<span class="voiceBar" style="height:' + h + 'px"></span>';
+    }).join("");
+  }
+
+  function enhanceAudioMessages() {
+    document.querySelectorAll("audio.audioMessage").forEach(function(audio) {
+      if (audio.dataset.voiceStyled === "1") return;
+      audio.dataset.voiceStyled = "1";
+
+      const src = audio.getAttribute("src");
+      if (!src) return;
+
+      const box = document.createElement("div");
+      box.className = "voiceUiBox";
+      box.innerHTML =
+        '<button type="button" class="voicePlayBtn">▶</button>' +
+        '<div class="voiceWave">' + buildBars() + '</div>' +
+        '<span class="voiceTime">0:00</span>' +
+        '<button type="button" class="voiceSpeedBtn">1x</button>';
+
+      const playBtn = box.querySelector(".voicePlayBtn");
+      const wave = box.querySelector(".voiceWave");
+      const time = box.querySelector(".voiceTime");
+      const speedBtn = box.querySelector(".voiceSpeedBtn");
+      const bars = Array.from(box.querySelectorAll(".voiceBar"));
+
+      audio.controls = false;
+      audio.style.display = "none";
+
+      audio.addEventListener("loadedmetadata", function () {
+        time.textContent = formatVoiceTime(audio.duration || 0);
+      });
+
+      audio.addEventListener("timeupdate", function () {
+        const duration = audio.duration || 0;
+        const current = audio.currentTime || 0;
+        const percent = duration ? current / duration : 0;
+        const activeCount = Math.floor(percent * bars.length);
+
+        bars.forEach(function(bar, i) {
+          if (i <= activeCount) bar.classList.add("active");
+          else bar.classList.remove("active");
+        });
+
+        time.textContent = formatVoiceTime(duration ? (duration - current) : current);
+      });
+
+      audio.addEventListener("ended", function () {
+        playBtn.textContent = "▶";
+        bars.forEach(function(bar) { bar.classList.remove("active"); });
+        time.textContent = formatVoiceTime(audio.duration || 0);
+      });
+
+      playBtn.onclick = function () {
+        document.querySelectorAll("audio.audioMessage").forEach(function(otherAudio) {
+          if (otherAudio !== audio) {
+            otherAudio.pause();
+          }
+        });
+
+        if (audio.paused) {
+          audio.play();
+          playBtn.textContent = "Ⅱ";
+        } else {
+          audio.pause();
+          playBtn.textContent = "▶";
+        }
+      };
+
+      wave.onclick = function (event) {
+        const rect = wave.getBoundingClientRect();
+        const percent = (event.clientX - rect.left) / rect.width;
+        if (audio.duration) {
+          audio.currentTime = Math.max(0, Math.min(audio.duration, audio.duration * percent));
+        }
+      };
+
+      speedBtn.onclick = function () {
+        const speeds = [1, 1.5, 2];
+        const current = audio.playbackRate || 1;
+        const next = speeds[(speeds.indexOf(current) + 1) % speeds.length] || 1;
+        audio.playbackRate = next;
+        speedBtn.textContent = next + "x";
+      };
+
+      audio.parentNode.insertBefore(box, audio);
+      box.appendChild(audio);
+    });
+  }
+
+  enhanceAudioMessages();
+  setInterval(enhanceAudioMessages, 700);
+})();
+</script>
+\n</body>
 </html>
 
 
