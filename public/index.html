@@ -1302,42 +1302,64 @@
     }
 
     function saveName() {
-      const inputName = document.getElementById("nameInput").value.trim();
-      const inputPhone = document.getElementById("phoneInput").value.trim();
+  const inputName = document.getElementById("nameInput").value.trim();
+  const inputPhone = document.getElementById("phoneInput").value.trim();
 
-      if (!inputName) {
-        alert("Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦");
-        return;
-      }
+  if (!inputName) {
+    alert("Enter username");
+    return;
+  }
 
-      if (!inputPhone) {
-        alert("Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â±Ã™â€šÃ™â€¦ Ã˜Â§Ã™â€žÃ™â€¡Ã˜Â§Ã˜ÂªÃ™Â");
-        return;
-      }
+  if (!inputPhone) {
+    alert("Enter phone number");
+    return;
+  }
 
-      socket.emit("login", {
-        name: inputName,
-        phone: inputPhone
-      }, function(response) {
-        if (!response || !response.ok) {
-          alert(response && response.message ? response.message : "Ã™ÂÃ˜Â´Ã™â€ž Ã˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ž Ã˜Â§Ã™â€žÃ˜Â¯Ã˜Â®Ã™Ë†Ã™â€ž");
-          return;
-        }
-
-        username = response.name;
-
-        document.getElementById("nameScreen").style.display = "none";
-        document.getElementById("chatList").style.display = "block";
-        document.getElementById("topTitle").innerText = "Chats";
-        document.getElementById("topSubtitle").innerText = username + " online";
-
-        loadChats();
-
-        setTimeout(function() {
-          socket.emit("request online users");
-        }, 500);
-      });
+  socket.emit("login", {
+    name: inputName,
+    phone: inputPhone
+  }, function(response) {
+    if (!response || !response.ok) {
+      alert(response && response.message ? response.message : "Login failed");
+      return;
     }
+
+    username = response.name;
+
+    localStorage.setItem("localChatUserName", response.name);
+    localStorage.setItem("localChatUserPhone", inputPhone);
+
+    document.getElementById("nameScreen").style.display = "none";
+    document.getElementById("chatList").style.display = "block";
+    document.getElementById("topTitle").innerText = "Chats";
+    document.getElementById("topSubtitle").innerText = username + " online";
+
+    loadChats();
+
+    setTimeout(function() {
+      socket.emit("request online users");
+    }, 500);
+  });
+}
+
+function autoLoginSavedUser() {
+  const savedName = localStorage.getItem("localChatUserName");
+  const savedPhone = localStorage.getItem("localChatUserPhone");
+
+  if (!savedName || !savedPhone) return;
+
+  const nameInput = document.getElementById("nameInput");
+  const phoneInput = document.getElementById("phoneInput");
+
+  if (nameInput) nameInput.value = savedName;
+  if (phoneInput) phoneInput.value = savedPhone;
+
+  setTimeout(function(){
+    saveName();
+  }, 400);
+}
+
+window.addEventListener("load", autoLoginSavedUser);
     function openRoom(room, roomName, avatar) {
       currentRoom = room;
       unreadCounts[room] = 0;
@@ -2887,6 +2909,7 @@ function sendFile(event){
 </script>
 </body>
 </html>
+
 
 
 
