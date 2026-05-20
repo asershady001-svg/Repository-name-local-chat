@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -1143,29 +1143,34 @@
 
     async function loadChats() {
       if (!username) return;
-      const contactsRes = await fetch("/api/contacts?username=" + encodeURIComponent(username));
-      const contactsData = await contactsRes.json();
+
+      const publicUsersRes = await fetch("/api/public-users?username=" + encodeURIComponent(username));
+      const publicUsersData = await publicUsersRes.json();
+
       const messageRes = await fetch("/api/message-chats?username=" + encodeURIComponent(username));
       const messageData = await messageRes.json();
 
-      const contactList = contactsData.ok ? (contactsData.contacts || []) : [];
+      const usersList = publicUsersData.ok ? (publicUsersData.users || []) : [];
       const messageList = messageData.ok ? (messageData.chats || []) : [];
 
-      const fromContacts = contactList.map(function(contact) {
-        const contactName = contact.name || contact.displayName || "Contact";
-        const roomId = contact.registered ? makePrivateRoomId(username, contactName) : ("notregistered:" + (contact.phone || ""));
+      const fromUsers = usersList.map(function(user) {
+        const otherName = user.name || "User";
         return {
-          id: roomId,
-          name: contact.registered ? contactName : ((contact.displayName || contactName) + " - Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜Â³Ã˜Â¬Ã™â€ž"),
-          avatar: contact.registered ? "Ã°Å¸â€˜Â¤" : "Ã¢Å¾â€¢",
-          phone: contact.phone || "",
-          registered: !!contact.registered
+          id: makePrivateRoomId(username, otherName),
+          name: otherName + " خاص",
+          peerName: otherName,
+          avatar: "👤",
+          registered: true
         };
       });
 
-      const merged = fromContacts.slice();
+      const merged = fromUsers.slice();
+
       messageList.forEach(function(chat) {
         if (!merged.some(function(existing) { return existing.id === chat.id; })) {
+          if (chat.name && String(chat.name).indexOf(" خاص") === -1) {
+            chat.name = chat.name + " خاص";
+          }
           merged.push(chat);
         }
       });
@@ -1173,7 +1178,6 @@
       chatsList = merged;
       refreshChatList();
     }
-
     async function addContactToServer(contactName, contactPhone) {
       const res = await fetch("/api/contacts", {
         method: "POST",
@@ -2958,6 +2962,12 @@ function sendFile(event){
 
 <input id="cameraInput" type="file" accept="image/*" capture="environment" onchange="sendImage(event)" style="display:none" />
 <input id="fileInput" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,image/*" onchange="sendFile(event)" style="display:none" />
+<style id="HIDE_ADD_CONTACT_OFFICIAL">
+#addContactBtn,
+#addContactBox {
+  display: none !important;
+}
+</style>
 </body>
 </html>
 

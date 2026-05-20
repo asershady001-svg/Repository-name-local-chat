@@ -190,6 +190,13 @@ loadChats();
 loadContactsFromDb().then(ok => { if (!ok) loadContacts(); });
 loadMessages();
 
+app.get("/api/public-users", (req, res) => {
+  const currentName = String(req.query.username || "").trim();
+  const users = Object.keys(allowedUsers || {})
+    .filter(name => name && name !== currentName)
+    .map(name => ({ name }));
+  res.json({ ok: true, users });
+});
 app.get("/api/users", (req, res) => {
   if (!isAdminRequest(req)) {
     return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
