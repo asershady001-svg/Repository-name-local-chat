@@ -25,15 +25,7 @@ const chatsFile = path.join(__dirname, "chats.json");
 const contactsFile = path.join(__dirname, "contacts.json");
 const APP_VERSION = "login-fix-private-chat-2026-05-12-2128";
 
-let allowedUsers = {
-  "Ã˜Â£Ã˜Â³Ã˜Â±": "",
-  "Ã˜Â§Ã˜Â³Ã˜Â±": "",
-  "Ã™â€¦Ã˜Â­Ã™â€¦Ã˜Â¯": "1234",
-  "Ã˜Â´Ã˜Â§Ã˜Â¯Ã™Å ": "1234",
-  "Ã˜Â¬Ã™Ë†Ã˜Â¯Ã™Å ": "1234",
-  "Ã˜Â¹Ã™â€¦Ã˜Â±": "1234",
-  "admin": "admin123"
-};
+let allowedUsers = {};
 
 let chats = [];
 
@@ -93,10 +85,7 @@ function loadUsers() {
     if (fs.existsSync(usersFile)) {
       const data = fs.readFileSync(usersFile, "utf8");
       const savedUsers = JSON.parse(data);
-      allowedUsers = { ...allowedUsers, ...savedUsers };
-      allowedUsers["Ã˜Â£Ã˜Â³Ã˜Â±"] = allowedUsers["Ã˜Â£Ã˜Â³Ã˜Â±"] || "";
-      allowedUsers["Ã˜Â§Ã˜Â³Ã˜Â±"] = allowedUsers["Ã˜Â§Ã˜Â³Ã˜Â±"] || "";
-      saveUsers();
+      allowedUsers = savedUsers && typeof savedUsers === "object" && !Array.isArray(savedUsers) ? savedUsers : {};
       console.log("Users loaded from users.json");
     } else {
       saveUsers();
