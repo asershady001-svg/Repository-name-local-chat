@@ -239,13 +239,36 @@
     }
 
     .callPanel {
-      display: none;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      background: #111b21;
-      border-bottom: 1px solid #2a3942;
-    }
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px;
+  background:#111b21;
+  border-bottom:1px solid #22303a;
+  overflow-x:auto;
+}
+
+.callPanel button {
+  border:none;
+  border-radius:18px;
+  padding:10px 16px;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+  color:white;
+  background:#00a884;
+  white-space:nowrap;
+}
+
+.callPanel .endCallBtn {
+  background:#ff3b30;
+}
+
+#callStatus {
+  color:#d1f7c4;
+  font-size:15px;
+  font-weight:bold;
+}
 
     .callPanel button {
       border: none;
@@ -1064,12 +1087,12 @@
 
     <div class="chatScreen" id="chatScreen">
       <div class="callPanel" id="callPanel">
-        <button onclick="startVoiceCall()">Ã°Å¸â€œÅ¾ Ã™â€¦Ã™Æ’Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â© Ã˜ÂµÃ™Ë†Ã˜ÂªÃ™Å Ã˜Â©</button>
-        <button onclick="startVideoCall()">Ã°Å¸â€œÂ¹ Video Call</button>
-        <button class="endCallBtn" onclick="endCall()">Ã˜Â¥Ã™â€ Ã™â€¡Ã˜Â§Ã˜Â¡</button>
-        <span id="callStatus">Ã˜Â¬Ã˜Â§Ã™â€¡Ã˜Â² Ã™â€žÃ™â€žÃ™â€¦Ã™Æ’Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â©</span>
-        <audio id="remoteCallAudio" autoplay></audio>
-      </div>
+  <button onclick="startVoiceCall()">📞 Voice Call</button>
+  <button onclick="startVideoCall()">📹 Video Call</button>
+  <button class="endCallBtn" onclick="endCall()">End</button>
+  <span id="callStatus">Ready</span>
+  <audio id="remoteCallAudio" autoplay></audio>
+</div>
       <div class="videoCallBox" id="videoCallBox">
         <video id="localCallVideo" autoplay muted playsinline></video>
         <video id="remoteCallVideo" autoplay playsinline></video>
@@ -2088,6 +2111,15 @@ window.addEventListener("load", autoLoginSavedUser);
           <img class="chatImage" src="${data.image}" onclick="openImageViewer('${data.image}')" />
           <div class="time">${data.time}</div>
         `;
+      } else if (data.type === "file" && data.fileData) {
+        content = `
+          ${isMe ? "" : `<div class="sender">${data.name}</div>`}
+          <a href="${data.fileData}" download="${data.fileName || "file"}" target="_blank" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:white;background:#202c33;padding:12px;border-radius:14px;">
+            <span style="font-size:28px;">📄</span>
+            <span>${data.fileName || data.text || "File"}</span>
+          </a>
+          <div class="time">${data.time}</div>
+        `;
       } else if (data.type === "audio" && data.audio) {
         content = `
           ${isMe ? "" : `<div class="sender">${data.name}</div>`}
@@ -2182,7 +2214,7 @@ window.addEventListener("load", autoLoginSavedUser);
 
       const last = document.getElementById("last-" + data.room);
       if (last) {
-        last.innerText = data.name + ": " + (data.type === "image" ? "Ã°Å¸â€œÂ· Ã˜ÂµÃ™Ë†Ã˜Â±Ã˜Â©" : data.type === "audio" ? "Ã°Å¸Å½Â¤ Ã˜Â±Ã˜Â³Ã˜Â§Ã™â€žÃ˜Â© Ã˜ÂµÃ™Ë†Ã˜ÂªÃ™Å Ã˜Â©" : data.text);
+        last.innerText = data.name + ": " + (data.type === "image" ? "📷 Image" : data.type === "audio" ? "🎤 Voice message" : data.type === "file" ? "📄 " + (data.fileName || data.text || "File") : data.text);
       }
 
       if (data.room === currentRoom) {
@@ -2907,8 +2939,31 @@ function sendFile(event){
 
 })();
 </script>
+<div class="attachMenu" id="attachMenu">
+  <div class="attachItem" onclick="document.getElementById('imageInput').click();toggleAttachMenu(false);">
+    <div class="attachIcon">🖼️</div>
+    <div>Gallery</div>
+  </div>
+
+  <div class="attachItem" onclick="document.getElementById('cameraInput').click();toggleAttachMenu(false);">
+    <div class="attachIcon">📷</div>
+    <div>Camera</div>
+  </div>
+
+  <div class="attachItem" onclick="document.getElementById('fileInput').click();toggleAttachMenu(false);">
+    <div class="attachIcon">📄</div>
+    <div>Document</div>
+  </div>
+</div>
+
+<input id="cameraInput" type="file" accept="image/*" capture="environment" onchange="sendImage(event)" style="display:none" />
+<input id="fileInput" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,image/*" onchange="sendFile(event)" style="display:none" />
 </body>
 </html>
+
+
+
+
 
 
 

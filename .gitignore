@@ -17,3 +17,10 @@ chats_before_github_clean_*.json
 messages_before_github_clean_*.json
 
 archive_cleanup/
+
+# Local archives and backups
+_ARCHIVE_EXTRA_FILES_*/
+backups/
+android/
+public/*BACKUP*.html
+*BACKUP*.js
