@@ -78,6 +78,22 @@
       color: #8696a0;
       margin-top: 4px;
     }
+    .aiTopBtn {
+      border: none;
+      border-radius: 999px;
+      background: #00a884;
+      color: white;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .aiTopBtn:hover {
+      background: #06cf9c;
+    }
+
 
     .nameScreen {
       height: calc(100vh - 68px);
@@ -1062,6 +1078,7 @@
         <div class="title" id="topTitle">Local Chat</div>
         <div class="subtitle" id="topSubtitle">Ready</div>
       </div>
+      <button class="aiTopBtn" id="aiTopBtn" onclick="alert('AI Assistant will be added next.')" title="AI Assistant">&#129302; AI</button>
     </div>
 
     <div class="nameScreen" id="nameScreen">
