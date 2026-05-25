@@ -190,6 +190,66 @@ loadChats();
 loadContactsFromDb().then(ok => { if (!ok) loadContacts(); });
 loadMessages();
 
+app.post("/api/ai-chat", async (req, res) => {
+  try {
+    const question = String(req.body.message || "").trim();
+
+    if (!question) {
+      return res.json({ ok: false, reply: "اكتب سؤالك أولا." });
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.json({
+        ok: false,
+        reply: "المساعد الذكي غير مفعل الآن. يجب إضافة OPENAI_API_KEY في إعدادات السيرفر."
+      });
+    }
+
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + process.env.OPENAI_API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4.1-mini",
+        input: [
+          {
+            role: "system",
+            content: "أنت مساعد شخصي داخل منصة Local Chat. أجب باللغة العربية غالبا. ساعد المستخدم في المسائل الدراسية والكيمياء والرياضيات والفيزياء والترجمة والشرح. اجعل الإجابة واضحة ومباشرة."
+          },
+          {
+            role: "user",
+            content: question
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("AI API error:", data);
+      return res.json({
+        ok: false,
+        reply: "حدث خطأ أثناء الاتصال بالمساعد الذكي. حاول مرة أخرى بعد قليل."
+      });
+    }
+
+    const reply =
+      data.output_text ||
+      (data.output && data.output[0] && data.output[0].content && data.output[0].content[0] && data.output[0].content[0].text) ||
+      "لم أستطع تكوين رد واضح. حاول إعادة صياغة السؤال.";
+
+    res.json({ ok: true, reply });
+  } catch (error) {
+    console.error("AI chat route error:", error);
+    res.json({
+      ok: false,
+      reply: "AI internal error: " + (error && error.message ? error.message : String(error))
+    });
+  }
+});
 app.get("/api/public-users", (req, res) => {
   const currentName = String(req.query.username || "").trim();
   const users = Object.keys(allowedUsers || {})

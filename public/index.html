@@ -1078,7 +1078,7 @@
         <div class="title" id="topTitle">Local Chat</div>
         <div class="subtitle" id="topSubtitle">Ready</div>
       </div>
-      <button class="aiTopBtn" id="aiTopBtn" onclick="alert('AI Assistant will be added next.')" title="AI Assistant">&#129302; AI</button>
+      <button class="aiTopBtn" id="aiTopBtn" onclick="openAIAssistant()" title="AI Assistant">&#129302; AI</button>
     </div>
 
     <div class="nameScreen" id="nameScreen">
@@ -1428,6 +1428,9 @@ window.addEventListener("load", autoLoginSavedUser);
       }, 200);
     }
 
+    function openAIAssistant() {
+      openRoom("ai-assistant", "AI Assistant", "AI");
+    }
     function backToList() {
       currentRoom = "";
       document.getElementById("chatScreen").style.display = "none";
@@ -1473,11 +1476,102 @@ window.addEventListener("load", autoLoginSavedUser);
       input.focus();
     }
 
+    function addLocalMessageToRoom(room, message) {
+      if (!messagesByRoom[room]) {
+        messagesByRoom[room] = [];
+      }
+
+      messagesByRoom[room].push(message);
+
+      if (room === currentRoom) {
+        addMessageToScreen(message);
+      }
+
+      refreshChatList();
+    }
+
+    function generateAIReply(question) {
+      const q = String(question || "").toLowerCase();
+
+      if (q.includes("مرحبا") || q.includes("هلا") || q.includes("السلام") || q.includes("ازيك") || q.includes("كيف حالك")) {
+        return "أهلًا يا صديقي، أنا مساعدك الشخصي داخل Local Chat. اكتب لي السؤال أو المسألة، وسأحاول مساعدتك فورًا.";
+      }
+
+      if (q.includes("كيمياء") || q.includes("اتزان") || q.includes("مول") || q.includes("ph") || q.includes("حمض") || q.includes("قاعدة") || q.includes("حرارة")) {
+        return "تمام، هذه مسألة كيمياء. اكتب المعطيات كاملة والمطلوب، وسأرتب لك الحل بهذا الشكل: القانون، التعويض، الناتج، والوحدة. إذا كانت مسألة اتزان سأستخدم جدول ICE.";
+      }
+
+      if (q.includes("رياض") || q.includes("احسب") || q.includes("معادلة") || q.includes("مساحة") || q.includes("نسبة") || q.includes("جبر")) {
+        return "تمام، هذه مسألة رياضيات. اكتب المسألة كاملة بالأرقام، وسأحلها لك خطوة خطوة بطريقة بسيطة.";
+      }
+
+      if (q.includes("فيزياء") || q.includes("سرعة") || q.includes("قوة") || q.includes("طاقة") || q.includes("زمن")) {
+        return "تمام، هذه مسألة فيزياء. اكتب المعطيات والمطلوب، وسأحدد القانون المناسب ثم أعوض وأكتب الناتج بالوحدة.";
+      }
+
+      if (q.includes("ترجم") || q.includes("english") || q.includes("انجليزي") || q.includes("translate")) {
+        return "أرسل الجملة أو الفقرة التي تريد ترجمتها، وسأساعدك في ترجمتها أو تصحيحها.";
+      }
+
+      return "أنا أعمل الآن بوضع محلي تجريبي. أستطيع مساعدتك أكثر إذا كتبت نوع السؤال بوضوح مثل: كيمياء، رياضيات، فيزياء، ترجمة. وللرد مثل ChatGPT الحقيقي نحتاج تفعيل OPENAI_API_KEY الحقيقي لاحقًا.";
+    }
+
+    async function handleAIAssistantMessage(text) {
+      const userMessage = {
+        type: "text",
+        name: username,
+        text: text,
+        time: nowTime()
+      };
+
+      addLocalMessageToRoom("ai-assistant", userMessage);
+
+      const thinkingMessage = {
+        type: "text",
+        name: "AI Assistant",
+        text: "جار التفكير...",
+        time: nowTime()
+      };
+
+      addLocalMessageToRoom("ai-assistant", thinkingMessage);
+
+      try {
+        const response = await fetch("/api/ai-chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            message: text
+          })
+        });
+
+        const data = await response.json();
+
+        thinkingMessage.text = (data && data.ok && data.reply) ? data.reply : generateAIReply(text);
+        thinkingMessage.time = nowTime();
+
+        renderRoomMessages("ai-assistant");
+        refreshChatList();
+      } catch (error) {
+        thinkingMessage.text = generateAIReply(text);
+        thinkingMessage.time = nowTime();
+
+        renderRoomMessages("ai-assistant");
+        refreshChatList();
+      }
+    }
     function sendMessage() {
       const input = document.getElementById("messageInput");
       const text = input.value.trim();
 
       if (!text || !currentRoom) return;
+
+      if (currentRoom === "ai-assistant") {
+        handleAIAssistantMessage(text);
+        input.value = "";
+        return;
+      }
 
       socket.emit("chat message", {
         type: "text",
