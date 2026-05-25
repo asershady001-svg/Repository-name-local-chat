@@ -184,12 +184,96 @@ function isAdminRequest(req) {
   const adminPassword = req.query.admin || (req.body && req.body.admin);
   return adminPassword === "admin123";
 }
+const AI_PRO_MONTHLY_PRICE_QAR = 10;
+
+function getUserRecord(name) {
+  if (!name || !Object.prototype.hasOwnProperty.call(allowedUsers, name)) {
+    return null;
+  }
+
+  const value = allowedUsers[name];
+
+  if (value && typeof value === "object") {
+    return value;
+  }
+
+  allowedUsers[name] = {
+    phone: "",
+    password: String(value || "")
+  };
+
+  return allowedUsers[name];
+}
+
+function ensureAIFields(name) {
+  const user = getUserRecord(name);
+  if (!user) return null;
+
+  if (!user.aiPlan) user.aiPlan = "free";
+  if (!user.aiProUntil) user.aiProUntil = "";
+  if (!user.aiMonthlyPriceQAR) user.aiMonthlyPriceQAR = AI_PRO_MONTHLY_PRICE_QAR;
+
+  return user;
+}
+
+function isAIProActive(user) {
+  if (!user || user.aiPlan !== "pro" || !user.aiProUntil) {
+    return false;
+  }
+
+  const end = new Date(user.aiProUntil);
+  if (Number.isNaN(end.getTime())) {
+    return false;
+  }
+
+  return end.getTime() > Date.now();
+}
+
+function getAIPlanStatus(name) {
+  const user = ensureAIFields(name);
+
+  if (!user) {
+    return {
+      ok: false,
+      aiPlan: "free",
+      aiProActive: false,
+      aiProUntil: "",
+      aiMonthlyPriceQAR: AI_PRO_MONTHLY_PRICE_QAR
+    };
+  }
+
+  return {
+    ok: true,
+    aiPlan: user.aiPlan || "free",
+    aiProActive: isAIProActive(user),
+    aiProUntil: user.aiProUntil || "",
+    aiMonthlyPriceQAR: AI_PRO_MONTHLY_PRICE_QAR
+  };
+}
+
 
 loadUsers();
 loadChats();
 loadContactsFromDb().then(ok => { if (!ok) loadContacts(); });
 loadMessages();
 
+app.get("/api/ai-subscription-status", (req, res) => {
+  const username = String(req.query.username || "").trim();
+
+  if (!username) {
+    return res.json({
+      ok: false,
+      message: "username required",
+      aiPlan: "free",
+      aiProActive: false,
+      aiProUntil: "",
+      aiMonthlyPriceQAR: AI_PRO_MONTHLY_PRICE_QAR
+    });
+  }
+
+  const status = getAIPlanStatus(username);
+  res.json(status);
+});
 app.post("/api/ai-chat", async (req, res) => {
   try {
     const question = String(req.body.message || "").trim();

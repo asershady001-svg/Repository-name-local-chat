@@ -1139,6 +1139,7 @@
     const socket = io();
 
     let username = "";
+    let isCurrentUserNew = false;
     let currentRoom = "";
 
     let mediaRecorder = null;
@@ -1369,6 +1370,8 @@
     }
 
     username = response.name;
+    isCurrentUserNew = !!response.newUser;
+    localStorage.setItem("localChatIsNewUser", isCurrentUserNew ? "1" : "0");
 
     localStorage.setItem("localChatUserName", response.name);
     localStorage.setItem("localChatUserPhone", inputPhone);
@@ -1389,6 +1392,7 @@
 function autoLoginSavedUser() {
   const savedName = localStorage.getItem("localChatUserName");
   const savedPhone = localStorage.getItem("localChatUserPhone");
+  isCurrentUserNew = localStorage.getItem("localChatIsNewUser") === "1";
 
   if (!savedName || !savedPhone) return;
 
@@ -1403,7 +1407,20 @@ function autoLoginSavedUser() {
   }, 400);
 }
 
-window.addEventListener("load", autoLoginSavedUser);
+window.addEventListener("load", function () {
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get("reset") === "1") {
+    localStorage.removeItem("localChatUserName");
+    localStorage.removeItem("localChatUserPhone");
+    localStorage.removeItem("localChatIsNewUser");
+    window.history.replaceState({}, document.title, window.location.pathname);
+    location.reload();
+    return;
+  }
+
+  autoLoginSavedUser();
+});
     function openRoom(room, roomName, avatar) {
       currentRoom = room;
       unreadCounts[room] = 0;
@@ -1439,6 +1456,51 @@ window.addEventListener("load", autoLoginSavedUser);
 
     setInterval(updateAIAssistantButtonName, 1000);
 
+    function requestAIProSubscription() {
+      const message = {
+        type: "text",
+        name: "AI Assistant",
+        text: "تم تسجيل طلب اشتراك AI Pro. السعر 10 ريال قطري شهريا. سيتم التفعيل بعد مراجعة الأدمن.",
+        time: nowTime()
+      };
+
+      addLocalMessageToRoom("ai-assistant", message);
+
+      const box = document.getElementById("aiSubscribeBox");
+      if (box) {
+        box.style.opacity = "0.75";
+      }
+    }
+    function showAISubscriptionButtonIfNeeded() {
+      const messages = document.getElementById("messages");
+      if (!messages) return;
+
+      const oldBox = document.getElementById("aiSubscribeBox");
+      if (oldBox) oldBox.remove();
+
+      if (!isCurrentUserNew || currentRoom !== "ai-assistant") {
+        return;
+      }
+
+      const box = document.createElement("div");
+      box.id = "aiSubscribeBox";
+      box.style.margin = "12px";
+      box.style.padding = "14px";
+      box.style.borderRadius = "16px";
+      box.style.background = "#202c33";
+      box.style.border = "1px solid #00a884";
+      box.style.textAlign = "center";
+
+      box.innerHTML = `
+        <div style="font-weight:bold;margin-bottom:6px">AI Pro</div>
+        <div style="font-size:13px;color:#aebac1;margin-bottom:10px">اشتراك المساعد الذكي للمستخدمين الجدد</div>
+        <button onclick="requestAIProSubscription()" style="border:0;border-radius:999px;background:#00a884;color:white;padding:10px 16px;font-weight:bold;cursor:pointer">
+          اشترك في AI Pro - 10 ر.ق شهريا
+        </button>
+      `;
+
+      messages.prepend(box);
+    }
     function openAIAssistant() {
       updateAIAssistantButtonName();
 
@@ -1451,6 +1513,7 @@ window.addEventListener("load", autoLoginSavedUser);
       }
 
       document.getElementById("topSubtitle").innerText = "Personal assistant";
+      setTimeout(showAISubscriptionButtonIfNeeded, 200);
     }
     function backToList() {
       currentRoom = "";
