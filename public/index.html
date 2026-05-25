@@ -1428,8 +1428,29 @@ window.addEventListener("load", autoLoginSavedUser);
       }, 200);
     }
 
+    function updateAIAssistantButtonName() {
+      const aiBtn = document.getElementById("aiTopBtn");
+      if (!aiBtn) return;
+
+      const aiOwnerName = username ? (username + " AI") : "AI";
+      aiBtn.innerHTML = "&#129302; " + aiOwnerName;
+      aiBtn.title = aiOwnerName;
+    }
+
+    setInterval(updateAIAssistantButtonName, 1000);
+
     function openAIAssistant() {
-      openRoom("ai-assistant", "AI Assistant", "AI");
+      updateAIAssistantButtonName();
+
+      const aiOwnerName = username ? (username + " AI") : "My AI";
+      openRoom("ai-assistant", aiOwnerName, "AI");
+
+      const callPanel = document.getElementById("callPanel");
+      if (callPanel) {
+        callPanel.style.display = "none";
+      }
+
+      document.getElementById("topSubtitle").innerText = "Personal assistant";
     }
     function backToList() {
       currentRoom = "";
