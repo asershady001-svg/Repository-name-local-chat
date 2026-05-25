@@ -313,10 +313,12 @@ app.post("/api/ai-chat", async (req, res) => {
     const data = await response.json();
 
     if (!response.ok) {
+      const aiErrorMessage = data && data.error && data.error.message ? data.error.message : "Unknown OpenAI API error";
+      const aiErrorCode = data && data.error && data.error.code ? data.error.code : "";
       console.error("AI API error:", data);
       return res.json({
         ok: false,
-        reply: "حدث خطأ أثناء الاتصال بالمساعد الذكي. حاول مرة أخرى بعد قليل."
+        reply: "OpenAI error: " + aiErrorMessage + (aiErrorCode ? " (" + aiErrorCode + ")" : "")
       });
     }
 
