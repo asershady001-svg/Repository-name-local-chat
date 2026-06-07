@@ -345,7 +345,7 @@ app.get("/api/public-users", (req, res) => {
 });
 app.get("/api/users", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
+    return res.status(403).json({ ok: false, message: "غير مصرح" });
   }
 
   const users = Object.keys(allowedUsers).map(name => {
@@ -371,7 +371,7 @@ app.get("/api/users", (req, res) => {
 
 app.post("/api/users", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
+    return res.status(403).json({ ok: false, message: "غير مصرح" });
   }
 
   const name = String(req.body.name || "").trim();
@@ -379,15 +379,15 @@ app.post("/api/users", (req, res) => {
   const password = String(req.body.password || "").trim();
 
   if (!name) {
-    return res.json({ ok: false, message: "Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦" });
+    return res.json({ ok: false, message: "اكتب اسم المستخدم" });
   }
 
   if (!phone) {
-    return res.json({ ok: false, message: "Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â±Ã™â€šÃ™â€¦ Ã˜Â§Ã™â€žÃ™â€¡Ã˜Â§Ã˜ÂªÃ™Â" });
+    return res.json({ ok: false, message: "اكتب رقم الهاتف" });
   }
 
-  if (name !== "Ã˜Â£Ã˜Â³Ã˜Â±" && name !== "Ã˜Â§Ã˜Â³Ã˜Â±" && password.length < 3) {
-    return res.json({ ok: false, message: "Ã™Æ’Ã™â€žÃ™â€¦Ã˜Â© Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â±Ã™Ë†Ã˜Â± Ã™â€šÃ˜ÂµÃ™Å Ã˜Â±Ã˜Â© Ã˜Â¬Ã˜Â¯Ã™â€¹Ã˜Â§" });
+  if (name !== "أسر" && name !== "اسر" && password.length < 3) {
+    return res.json({ ok: false, message: "كلمة المرور قصيرة جدًا" });
   }
 
   allowedUsers[name] = {
@@ -396,28 +396,28 @@ app.post("/api/users", (req, res) => {
   };
   saveUsers();
 
-  res.json({ ok: true, message: "Ã˜ÂªÃ™â€¦ Ã˜Â­Ã™ÂÃ˜Â¸ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦" });
+  res.json({ ok: true, message: "تم حفظ المستخدم" });
 });
 
 app.delete("/api/users/:name", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
+    return res.status(403).json({ ok: false, message: "غير مصرح" });
   }
 
   const name = decodeURIComponent(req.params.name);
 
   if (name === "admin") {
-    return res.json({ ok: false, message: "Ã™â€žÃ˜Â§ Ã™Å Ã™â€¦Ã™Æ’Ã™â€  Ã˜Â­Ã˜Â°Ã™Â admin" });
+    return res.json({ ok: false, message: "لا يمكن حذف admin" });
   }
 
-  if (name === "Ã˜Â£Ã˜Â³Ã˜Â±" || name === "Ã˜Â§Ã˜Â³Ã˜Â±") {
-    return res.json({ ok: false, message: "Ã™â€žÃ˜Â§ Ã™Å Ã™â€¦Ã™Æ’Ã™â€  Ã˜Â­Ã˜Â°Ã™Â Ã˜Â£Ã˜Â³Ã˜Â±" });
+  if (name === "أسر" || name === "اسر") {
+    return res.json({ ok: false, message: "لا يمكن حذف أسر" });
   }
 
   delete allowedUsers[name];
   saveUsers();
 
-  res.json({ ok: true, message: "Ã˜ÂªÃ™â€¦ Ã˜Â­Ã˜Â°Ã™Â Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦" });
+  res.json({ ok: true, message: "تم حذف المستخدم" });
 });
 
 app.get("/api/chats-public", (req, res) => {
@@ -432,7 +432,7 @@ app.get("/api/message-chats", (req, res) => {
     .filter(room => room.replace("private:", "").split("__").includes(username))
     .map(room => {
       const names = room.replace("private:", "").split("__");
-      const otherName = names.find(n => n !== username) || "Ù…Ø­Ø§Ø¯Ø«Ø©";
+      const otherName = names.find(n => n !== username) || "محادثة";
       const msgs = messageHistory[room] || [];
       const last = msgs.length ? msgs[msgs.length - 1] : null;
       return {
@@ -449,7 +449,7 @@ app.get("/api/message-chats", (req, res) => {
 
 app.get("/api/contacts", (req, res) => {
   const username = String(req.query.username || "").trim();
-  if (!username) return res.json({ ok: false, message: "Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã™â€¦Ã˜Â·Ã™â€žÃ™Ë†Ã˜Â¨" });
+  if (!username) return res.json({ ok: false, message: "اسم المستخدم مطلوب" });
   res.json({ ok: true, contacts: contacts[username] || [] });
 });
 
@@ -493,7 +493,7 @@ app.post("/api/contacts", async (req, res) => {
 });
 app.get("/api/chats", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
+    return res.status(403).json({ ok: false, message: "غير مصرح" });
   }
 
   res.json({ ok: true, chats });
@@ -501,14 +501,14 @@ app.get("/api/chats", (req, res) => {
 
 app.post("/api/chats", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
+    return res.status(403).json({ ok: false, message: "غير مصرح" });
   }
 
   const name = String(req.body.name || "").trim();
-  const avatar = String(req.body.avatar || "").trim() || "Ã˜Â¯";
+  const avatar = String(req.body.avatar || "").trim() || "د";
 
   if (!name) {
-    return res.json({ ok: false, message: "Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ˜Â¯Ã˜Â±Ã˜Â¯Ã˜Â´Ã˜Â©" });
+    return res.json({ ok: false, message: "اكتب اسم الدردشة" });
   }
 
   const id = "room_" + Date.now();
@@ -525,12 +525,12 @@ app.post("/api/chats", (req, res) => {
   saveChats();
   saveMessages();
 
-  res.json({ ok: true, message: "Ã˜ÂªÃ™â€¦Ã˜Âª Ã˜Â¥Ã˜Â¶Ã˜Â§Ã™ÂÃ˜Â© Ã˜Â§Ã™â€žÃ˜Â¯Ã˜Â±Ã˜Â¯Ã˜Â´Ã˜Â©", chat });
+  res.json({ ok: true, message: "تمت إضافة الدردشة", chat });
 });
 
 app.delete("/api/chats/:id", (req, res) => {
   if (!isAdminRequest(req)) {
-    return res.status(403).json({ ok: false, message: "Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­" });
+    return res.status(403).json({ ok: false, message: "غير مصرح" });
   }
 
   const id = decodeURIComponent(req.params.id);
@@ -543,7 +543,7 @@ app.delete("/api/chats/:id", (req, res) => {
   saveChats();
   saveMessages();
 
-  res.json({ ok: true, message: "Ã˜ÂªÃ™â€¦ Ã˜Â­Ã˜Â°Ã™Â Ã˜Â§Ã™â€žÃ˜Â¯Ã˜Â±Ã˜Â¯Ã˜Â´Ã˜Â©" });
+  res.json({ ok: true, message: "تم حذف الدردشة" });
 });
 
 const onlineUsers = {};
@@ -599,12 +599,12 @@ io.on("connection", (socket) => {
     const phone = String(data.phone || "").trim();
 
     if (!name) {
-      callback({ ok: false, message: "Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦" });
+      callback({ ok: false, message: "اكتب اسم المستخدم" });
       return;
     }
 
     if (!phone) {
-      callback({ ok: false, message: "Ã˜Â§Ã™Æ’Ã˜ÂªÃ˜Â¨ Ã˜Â±Ã™â€šÃ™â€¦ Ã˜Â§Ã™â€žÃ™â€¡Ã˜Â§Ã˜ÂªÃ™Â" });
+      callback({ ok: false, message: "اكتب رقم الهاتف" });
       return;
     }
 
@@ -651,7 +651,7 @@ io.on("connection", (socket) => {
     }
 
     if (Object.prototype.hasOwnProperty.call(allowedUsers, name)) {
-      callback({ ok: false, message: "Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã™â€¦Ã™Ë†Ã˜Â¬Ã™Ë†Ã˜Â¯ Ã˜Â¨Ã˜Â§Ã™â€žÃ™ÂÃ˜Â¹Ã™â€ž Ã™â€¦Ã˜Â¹ Ã˜Â±Ã™â€šÃ™â€¦ Ã˜Â¢Ã˜Â®Ã˜Â±. Ã˜Â§Ã˜Â®Ã˜ÂªÃ˜Â± Ã˜Â§Ã˜Â³Ã™â€¦Ã˜Â§ Ã˜Â¢Ã˜Â®Ã˜Â± Ã˜Â£Ã™Ë† Ã˜Â§Ã˜Â¯Ã˜Â®Ã™â€ž Ã˜Â¨Ã˜Â±Ã™â€šÃ™â€¦ Ã˜Â§Ã™â€žÃ™â€¡Ã˜Â§Ã˜ÂªÃ™Â Ã˜Â§Ã™â€žÃ™â€šÃ˜Â¯Ã™Å Ã™â€¦." });
+      callback({ ok: false, message: "اسم المستخدم موجود بالفعل مع رقم آخر. اختر اسما آخر أو ادخل برقم الهاتف القديم." });
       console.log("Register rejected duplicate name:", name);
       return;
     }
@@ -683,7 +683,7 @@ io.on("connection", (socket) => {
 
   socket.on("join room", (data) => {
     if (!socket.isLoggedIn) {
-      socket.emit("login required", { message: "Ã™Å Ã˜Â¬Ã˜Â¨ Ã˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ž Ã˜Â§Ã™â€žÃ˜Â¯Ã˜Â®Ã™Ë†Ã™â€ž Ã˜Â£Ã™Ë†Ã™â€žÃ™â€¹Ã˜Â§" });
+      socket.emit("login required", { message: "يجب تسجيل الدخول أولًا" });
       return;
     }
 
@@ -707,7 +707,7 @@ io.on("connection", (socket) => {
     });
 
     socket.to(room).emit("system message", {
-      text: socket.username + " Ã˜Â¯Ã˜Â®Ã™â€ž Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â­Ã˜Â§Ã˜Â¯Ã˜Â«Ã˜Â©"
+      text: socket.username + " دخل المحادثة"
     });
   });
 
@@ -799,7 +799,7 @@ socket.on("typing", () => {
   socket.on("call-offer", (data) => {
     if (!socket.isLoggedIn || !socket.currentRoom || !socket.username) return;
     if (!socket.currentRoom.startsWith("private:")) {
-      socket.emit("call-reject", { from: "Local Chat", reason: "Ã˜Â§Ã™â€žÃ™â€¦Ã™Æ’Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â§Ã˜Âª Ã™â€¦Ã˜ÂªÃ˜Â§Ã˜Â­Ã˜Â© Ã™ÂÃ™Å  Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â­Ã˜Â§Ã˜Â¯Ã˜Â«Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€žÃ˜Â®Ã˜Â§Ã˜ÂµÃ˜Â© Ã™ÂÃ™â€šÃ˜Â·" });
+      socket.emit("call-reject", { from: "Local Chat", reason: "المكالمات متاحة في المحادثات الخاصة فقط" });
       return;
     }
 
