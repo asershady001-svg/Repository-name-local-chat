@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -1005,6 +1005,394 @@
 
 
 
+
+<style id="modern-local-chat-ui">
+:root{
+  --bg:#071316;
+  --panel:#0f2026;
+  --panel2:#162a31;
+  --card:#10242b;
+  --cardHover:#17333b;
+  --text:#f4fbff;
+  --muted:#94aeb8;
+  --accent:#00b894;
+  --accent2:#00d2a8;
+  --danger:#ff5c7a;
+  --radius:22px;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0 !important;
+  min-height:100% !important;
+  background:
+    radial-gradient(circle at top left, rgba(0,184,148,.18), transparent 32%),
+    linear-gradient(135deg,#061014,#0a171c 55%,#081216) !important;
+  color:var(--text) !important;
+  font-family:"Segoe UI", Tahoma, Arial, sans-serif !important;
+}
+
+body{
+  overflow:hidden;
+}
+
+/* الإطار العام */
+.app,.container,.main,.page,#app{
+  background:transparent !important;
+}
+
+/* الهيدر */
+.header,
+.topbar,
+.chat-header,
+.app-header,
+div[class*="header"],
+div[class*="top"]{
+  background:rgba(15,32,38,.92) !important;
+  backdrop-filter: blur(18px) !important;
+  border-bottom:1px solid rgba(255,255,255,.07) !important;
+  box-shadow:0 10px 35px rgba(0,0,0,.25) !important;
+}
+
+/* شعار LC */
+.logo,
+.avatar,
+.profile-avatar,
+div[class*="avatar"]{
+  box-shadow:0 12px 28px rgba(0,184,148,.22) !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+}
+
+/* عنوان Chats */
+h1,h2,h3{
+  letter-spacing:.2px !important;
+  color:var(--text) !important;
+}
+
+/* مربع البحث */
+input[type="search"],
+input[placeholder*="Search"],
+.search,
+.search-box,
+div[class*="search"] input{
+  background:rgba(255,255,255,.07) !important;
+  color:var(--text) !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  border-radius:999px !important;
+  outline:none !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 10px 25px rgba(0,0,0,.18) !important;
+}
+
+input::placeholder{
+  color:rgba(244,251,255,.48) !important;
+}
+
+/* الأزرار */
+button,
+.btn,
+.ai-button,
+.add-button{
+  border:0 !important;
+  border-radius:999px !important;
+  color:#fff !important;
+  background:linear-gradient(135deg,var(--accent),var(--accent2)) !important;
+  box-shadow:0 12px 25px rgba(0,184,148,.23) !important;
+  transition:.18s ease !important;
+}
+
+button:hover,
+.btn:hover{
+  transform:translateY(-1px) !important;
+  filter:brightness(1.06) !important;
+}
+
+button:active,
+.btn:active{
+  transform:scale(.98) !important;
+}
+
+/* زر التحديث */
+button:first-child{
+  background:rgba(255,255,255,.08) !important;
+  box-shadow:none !important;
+}
+
+/* قائمة الشات */
+.chat-list,
+.contacts-list,
+.list,
+ul{
+  padding:10px 14px !important;
+}
+
+/* كروت المحادثات */
+.chat-item,
+.contact-item,
+.user-item,
+li,
+div[class*="chat-item"],
+div[class*="contact"]{
+  background:linear-gradient(135deg,rgba(255,255,255,.065),rgba(255,255,255,.035)) !important;
+  border:1px solid rgba(255,255,255,.07) !important;
+  border-radius:20px !important;
+  margin:10px 6px !important;
+  box-shadow:0 14px 30px rgba(0,0,0,.16) !important;
+  transition:.18s ease !important;
+}
+
+.chat-item:hover,
+.contact-item:hover,
+.user-item:hover,
+li:hover{
+  background:rgba(255,255,255,.09) !important;
+  transform:translateY(-1px) !important;
+}
+
+/* منطقة الرسائل */
+.messages,
+.chat-messages,
+div[class*="messages"]{
+  background:transparent !important;
+}
+
+/* فقاعات الرسائل */
+.message,
+.msg,
+.bubble,
+div[class*="message"]{
+  border-radius:18px !important;
+}
+
+/* مربع الكتابة أسفل الشات */
+.footer,
+.input-area,
+.message-input,
+.chat-input,
+div[class*="input"]{
+  background:rgba(15,32,38,.88) !important;
+  border-top:1px solid rgba(255,255,255,.07) !important;
+}
+
+/* تحسين الموبايل */
+@media(max-width:700px){
+  body{
+    background:#071316 !important;
+  }
+
+  .header,
+  .topbar,
+  .chat-header,
+  .app-header{
+    padding:12px !important;
+  }
+
+  h1{
+    font-size:28px !important;
+  }
+
+  input[type="search"],
+  input[placeholder*="Search"]{
+    height:56px !important;
+    font-size:17px !important;
+  }
+
+  button{
+    min-height:46px !important;
+  }
+}
+</style>
+
+
+<style id="glass-transparent-ui">
+html, body{
+  background:
+    radial-gradient(circle at 15% 10%, rgba(0,255,200,.22), transparent 30%),
+    radial-gradient(circle at 85% 20%, rgba(0,120,255,.16), transparent 28%),
+    linear-gradient(135deg,#061014,#0b1b22,#071216) !important;
+}
+
+.header,
+.topbar,
+.chat-header,
+.app-header,
+.search,
+.search-box,
+.chat-list,
+.contacts-list,
+.messages,
+.chat-messages,
+.footer,
+.input-area,
+.message-input,
+.chat-input,
+div[class*="header"],
+div[class*="top"],
+div[class*="search"],
+div[class*="messages"],
+div[class*="input"]{
+  background:rgba(255,255,255,.045) !important;
+  backdrop-filter:blur(22px) saturate(150%) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(150%) !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  box-shadow:0 18px 45px rgba(0,0,0,.22) !important;
+}
+
+input,
+textarea,
+input[type="search"],
+input[placeholder*="Search"]{
+  background:rgba(255,255,255,.055) !important;
+  backdrop-filter:blur(18px) !important;
+  -webkit-backdrop-filter:blur(18px) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  color:#ffffff !important;
+}
+
+.chat-item,
+.contact-item,
+.user-item,
+.message,
+.msg,
+.bubble,
+li,
+div[class*="chat-item"],
+div[class*="contact"]{
+  background:rgba(255,255,255,.06) !important;
+  backdrop-filter:blur(18px) saturate(145%) !important;
+  -webkit-backdrop-filter:blur(18px) saturate(145%) !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  box-shadow:0 14px 35px rgba(0,0,0,.22) !important;
+}
+
+button,
+.btn,
+.ai-button,
+.add-button{
+  background:rgba(0,220,180,.55) !important;
+  backdrop-filter:blur(18px) !important;
+  -webkit-backdrop-filter:blur(18px) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  box-shadow:0 14px 30px rgba(0,200,160,.22) !important;
+}
+
+.logo,
+.avatar,
+.profile-avatar,
+div[class*="avatar"]{
+  background:rgba(0,210,170,.55) !important;
+  backdrop-filter:blur(18px) !important;
+  -webkit-backdrop-filter:blur(18px) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+}
+
+</style>
+
+
+<style id="more-transparent-local-chat-ui">
+/* MORE TRANSPARENT GLASS UI */
+
+html, body{
+  background:
+    radial-gradient(circle at 20% 10%, rgba(0, 210, 168, .28), transparent 35%),
+    radial-gradient(circle at 80% 90%, rgba(0, 120, 160, .22), transparent 38%),
+    linear-gradient(135deg, #061014, #08171b 50%, #041014) !important;
+}
+
+/* Main screen */
+body,
+#app,
+.app,
+.container,
+.main,
+.page{
+  background: rgba(5, 18, 22, .28) !important;
+}
+
+/* Header becomes glass */
+.header,
+.topbar,
+.chat-header,
+.app-header,
+div[class*="header"],
+div[class*="top"]{
+  background: rgba(20, 42, 48, .38) !important;
+  backdrop-filter: blur(22px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
+  border-bottom: 1px solid rgba(255,255,255,.12) !important;
+  box-shadow: 0 18px 45px rgba(0,0,0,.18) !important;
+}
+
+/* Search area more transparent */
+input[type="search"],
+input[placeholder*="Search"],
+.search,
+.search-box,
+div[class*="search"],
+div[class*="search"] input{
+  background: rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 15px 35px rgba(0,0,0,.14) !important;
+}
+
+/* Empty chat body lighter and glassy */
+.chat-list,
+.contacts-list,
+.list,
+.messages,
+.chat-messages,
+div[class*="list"],
+div[class*="messages"]{
+  background: rgba(5, 18, 22, .18) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+/* Cards more transparent */
+.chat-item,
+.contact-item,
+.user-item,
+li,
+div[class*="chat-item"],
+div[class*="contact"]{
+  background: rgba(255,255,255,.08) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+}
+
+/* Buttons glass but still clear */
+button,
+.btn,
+.ai-button,
+.add-button{
+  background: linear-gradient(135deg, rgba(0,210,168,.78), rgba(0,184,148,.58)) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  box-shadow: 0 16px 35px rgba(0,184,148,.18) !important;
+}
+
+/* Refresh button more transparent */
+button:first-child{
+  background: rgba(0,210,168,.45) !important;
+}
+
+/* Keep text readable */
+h1,h2,h3,
+.logo,
+.avatar,
+.profile-avatar{
+  text-shadow: 0 2px 12px rgba(0,0,0,.35) !important;
+}
+</style>
+
 </head>
 
 <body>
@@ -1632,13 +2020,13 @@ window.addEventListener("load", function () {
 
         const data = await response.json();
 
-        thinkingMessage.text = (data && data.ok && data.reply) ? data.reply : generateAIReply(text);
+        thinkingMessage.text = (data && data.ok && data.reply) ? data.reply : ("AI server error: " + ((data && data.reply) ? data.reply : "No reply returned from server."));
         thinkingMessage.time = nowTime();
 
         renderRoomMessages("ai-assistant");
         refreshChatList();
       } catch (error) {
-        thinkingMessage.text = generateAIReply(text);
+        thinkingMessage.text = "AI connection error: " + (error && error.message ? error.message : "Could not connect to AI server.");
         thinkingMessage.time = nowTime();
 
         renderRoomMessages("ai-assistant");
@@ -3165,6 +3553,10 @@ function sendFile(event){
 </style>
 </body>
 </html>
+
+
+
+
 
 
 
