@@ -1492,8 +1492,8 @@ h1,h2,h3,
 
     <div class="chatScreen" id="chatScreen">
       <div class="callPanel" id="callPanel">
-  <button onclick="startVoiceCall()">📞 Voice Call</button>
-  <button onclick="startVideoCall()">📹 Video Call</button>
+  <button id="voiceCallBtn" type="button" onclick="startVoiceCall()">📞 Voice Call</button>
+  <button id="videoCallBtn" type="button" onclick="startVideoCall()">📹 Video Call</button>
   <button class="endCallBtn" onclick="endCall()">End</button>
   <span id="callStatus">Ready</span>
   <audio id="remoteCallAudio" autoplay></audio>
@@ -2314,8 +2314,15 @@ localStorage.removeItem("localChatIsNewUser");
     }
 
     async function startVoiceCall() {
-      if (!currentRoom) {
-        alert("ادخل محادثة أولًا");
+      console.log("Voice Call button clicked. currentRoom =", currentRoom);
+
+      if (!isPrivateRoom()) {
+        alert("Open a private chat with one person first, then start the voice call.");
+        return;
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Microphone is blocked or not supported. Open the Render HTTPS link.");
         return;
       }
 
@@ -2352,8 +2359,15 @@ localStorage.removeItem("localChatIsNewUser");
     }
 
     async function startVideoCall() {
-      if (!currentRoom) {
-        alert("ادخل محادثة أولًا");
+      console.log("Video Call button clicked. currentRoom =", currentRoom);
+
+      if (!isPrivateRoom()) {
+        alert("Open a private chat with one person first, then start the video call.");
+        return;
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Camera or microphone is blocked or not supported. Open the Render HTTPS link.");
         return;
       }
 
@@ -3555,8 +3569,54 @@ function sendFile(event){
   display: none !important;
 }
 </style>
+
+
+
+<script id="force-call-button-binding">
+(function () {
+  function bindCallButtons() {
+    var voiceBtn = document.getElementById("voiceCallBtn");
+    var videoBtn = document.getElementById("videoCallBtn");
+
+    if (voiceBtn && !voiceBtn.dataset.bound) {
+      voiceBtn.dataset.bound = "1";
+      voiceBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        console.log("FORCED voice button click");
+        if (typeof startVoiceCall === "function") {
+          startVoiceCall();
+        } else {
+          alert("Voice call function was not found.");
+        }
+      });
+    }
+
+    if (videoBtn && !videoBtn.dataset.bound) {
+      videoBtn.dataset.bound = "1";
+      videoBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        console.log("FORCED video button click");
+        if (typeof startVideoCall === "function") {
+          startVideoCall();
+        } else {
+          alert("Video call function was not found.");
+        }
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", bindCallButtons);
+  setTimeout(bindCallButtons, 500);
+  setTimeout(bindCallButtons, 1500);
+})();
+</script>
 </body>
 </html>
+
+
+
+
+
 
 
 
