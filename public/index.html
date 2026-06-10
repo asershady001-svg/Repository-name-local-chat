@@ -1807,7 +1807,11 @@ window.addEventListener("load", function () {
     return;
   }
 
-  autoLoginSavedUser();
+  // Auto login disabled: always show login screen on page open
+localStorage.removeItem("localChatUserName");
+localStorage.removeItem("localChatUserPhone");
+localStorage.removeItem("localChatIsNewUser");
+// autoLoginSavedUser();
 });
     function openRoom(room, roomName, avatar) {
       currentRoom = room;
@@ -3553,6 +3557,7 @@ function sendFile(event){
 </style>
 </body>
 </html>
+
 
 
 
